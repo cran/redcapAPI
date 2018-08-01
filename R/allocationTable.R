@@ -70,7 +70,6 @@
 #' 
 #' Additional details on API parameters are found on the package wiki at
 #' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
-#' 
 #' @export
 
 allocationTable <- function(rcon, random, strata = NULL, 
@@ -195,7 +194,7 @@ allocationTable.redcapApiConnection <- function(rcon, random, strata = NULL,
   #* stratification groups
   strata <- c(strata, group)
   strata_levels <- lapply(strata, redcapChoices, meta_data)
-  names(strata_levels) <- c(strata, group)
+  names(strata_levels) <- strata
   if (!is.null(dag.id)) strata_levels[['redcap_data_access_group']] <- dag.id
   
   #* Allocation table
@@ -293,7 +292,7 @@ allocationTable.redcapApiConnection <- function(rcon, random, strata = NULL,
   
   #* 18. If 'weights' has names, the names are identical to the levels of 'random'
   if (!is.null(names(weights))){
-    if (identical(names(weights), random_level_names)) {
+    if (!identical(names(weights), random_level_names)) {
       coll$push(paste0("'weight' names must be '",
                        paste0(random_level_names, collapse = "', '"), 
                        "'."))
@@ -372,9 +371,9 @@ allocationTable.redcapApiConnection <- function(rcon, random, strata = NULL,
   rownames(prod_allocate) <- NULL  
   
   
-  return(list(dev_allocate = dev_allocate, 
+  return(list(dev_allocation = dev_allocate, 
               dev_seed = seed.dev,
-              prod_allocate = prod_allocate, 
+              prod_allocation = prod_allocate, 
               prod_seed = seed.prod,
               blocks = Blocks,
               weights = weights_orig))

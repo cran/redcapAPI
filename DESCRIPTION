@@ -1,7 +1,7 @@
 Package: redcapAPI
 Type: Package
 Title: Interface to 'REDCap'
-Version: 2.1
+Version: 2.2
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
            role = c("aut", "ctb", "cre")),
@@ -22,15 +22,15 @@ Description: Access data stored in 'REDCap' databases using the Application
     consistent with the definitions in a database's data dictionary.
 License: GPL-2
 Depends: R (>= 3.0.0)
-Imports: checkmate, chron, DBI, httr, labelVector, lubridate, stringr,
-        tidyr
+Imports: checkmate, chron, DBI, httr, labelVector, lubridate, readr,
+        stringr, tidyr
 LazyLoad: yes
 URL: https://github.com/nutterb/redcapAPI/wiki,
         https://github.com/nutterb/redcapAPI, https://projectredcap.org
 BugReports: https://github.com/nutterb/redcapAPI/issues
 RoxygenNote: 6.0.1
-NeedsCompilation: no
-Packaged: 2018-05-11 16:48:01 UTC; Nutter
+NeedsCompilation: yes
+Packaged: 2018-08-01 13:09:18 UTC; benjamin
 Author: Benjamin Nutter [aut, ctb, cre],
   Stephen Lane [ctb],
   Will Beasley [ctb],
@@ -38,4 +38,4 @@ Author: Benjamin Nutter [aut, ctb, cre],
   Will Gray [ctb],
   Jeremy Stephens [ctb]
 Repository: CRAN
-Date/Publication: 2018-05-11 16:59:35 UTC
+Date/Publication: 2018-08-01 13:50:03 UTC
