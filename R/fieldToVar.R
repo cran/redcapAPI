@@ -95,9 +95,7 @@ fieldToVar <- function(records, meta_data, factors = TRUE,
              "time" = 
                {
                  if (dates)
-                   chron::times(ifelse(!is.na(records[[i]]), 
-                                       paste0(records[[i]], ":00"), 
-                                       records[[i]]), 
+                   chron::times(gsub("(^\\d{2}:\\d{2}$)", "\\1:00", records[[i]]), 
                                 format=c(times="h:m:s"))
                  else 
                    records[[i]]
@@ -110,15 +108,18 @@ fieldToVar <- function(records, meta_data, factors = TRUE,
              "select" = 
                makeRedcapFactor(x = records[[i]],
                                 coding = meta_data$select_choices_or_calculations[meta_data$field_name == field_base],
-                                factors = factors),
+                                factors = factors, 
+                                var_name = meta_data$field_name[meta_data$field_name == field_base]),
              "radio" = 
                makeRedcapFactor(x = records[[i]],
                                 coding = meta_data$select_choices_or_calculations[meta_data$field_name == field_base],
-                                factors = factors),
+                                factors = factors, 
+                                var_name = meta_data$field_name[meta_data$field_name == field_base]),
              "dropdown" = 
                makeRedcapFactor(x = records[[i]],
                                 coding = meta_data$select_choices_or_calculations[meta_data$field_name == field_base],
-                                factors = factors),
+                                factors = factors, 
+                                var_name = meta_data$field_name),
              "yesno" = makeRedcapYN(records[[i]], 
                                     factors),
              "truefalse" = 
@@ -140,7 +141,8 @@ fieldToVar <- function(records, meta_data, factors = TRUE,
              {
                makeRedcapFactor(x = records[[i]],
                                 coding = "0, Incomplete | 1, Unverified | 2, Complete",
-                                factors)
+                                factors, 
+                                var_name = meta_data$field_name[meta_data$field_name == field_base])
              },
              records[[i]]
       ) # End switch

@@ -1,7 +1,7 @@
 Package: redcapAPI
 Type: Package
 Title: Interface to 'REDCap'
-Version: 2.2
+Version: 2.3
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
            role = c("aut", "ctb", "cre")),
@@ -9,7 +9,8 @@ Authors@R: c(
     person("Will", "Beasley", role = "ctb"),
     person("Jeffrey", "Horner", role = "ctb"),
     person("Will", "Gray", role = "ctb"),
-    person("Jeremy", "Stephens", role = "ctb"))
+    person("Jeremy", "Stephens", role = "ctb"), 
+    person("Marcus", "Lehr", role = "ctb", email = "marcus.j.lehr@gmail.com"))
 Maintainer: Benjamin Nutter <benjamin.nutter@gmail.com>
 Description: Access data stored in 'REDCap' databases using the Application
     Programming Interface (API).  'REDCap' (Research Electronic Data CAPture;
@@ -28,14 +29,15 @@ LazyLoad: yes
 URL: https://github.com/nutterb/redcapAPI/wiki,
         https://github.com/nutterb/redcapAPI, https://projectredcap.org
 BugReports: https://github.com/nutterb/redcapAPI/issues
-RoxygenNote: 6.0.1
-NeedsCompilation: yes
-Packaged: 2018-08-01 13:09:18 UTC; benjamin
+RoxygenNote: 7.0.2
+NeedsCompilation: no
+Packaged: 2020-02-17 16:48:16 UTC; benjamin
 Author: Benjamin Nutter [aut, ctb, cre],
   Stephen Lane [ctb],
   Will Beasley [ctb],
   Jeffrey Horner [ctb],
   Will Gray [ctb],
-  Jeremy Stephens [ctb]
+  Jeremy Stephens [ctb],
+  Marcus Lehr [ctb]
 Repository: CRAN
-Date/Publication: 2018-08-01 13:50:03 UTC
+Date/Publication: 2020-02-17 18:50:07 UTC
