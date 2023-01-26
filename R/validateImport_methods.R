@@ -272,7 +272,7 @@ validate_import_time_mm_ss <- function(x, field_name, field_min, field_max, logf
 validate_import_numeric <- function(x, field_name, field_min, field_max, logfile)
 {
   suppressWarnings(num_check <- as.numeric(x))
-  w <- which(is.na(num_check) & !is.na(x))
+  w <- which(is.na(num_check) & !x %in% c('', NA))
   
   suppressWarnings({
     if (!is.numeric(x)) x <- as.numeric(x)
@@ -377,7 +377,7 @@ validate_import_select_dropdown_radio <- function(x, field_name, field_choice, l
   x <- as.character(x)
   mapping <- strsplit(field_choice, "[|]")
   mapping <- unlist(mapping)
-  mapping <- stringr::str_split_fixed(mapping, ", ", 2)
+  mapping <- stringr::str_split_fixed(mapping, ",", 2)
   mapping <- trimws(mapping)
   
   #* Return labeled values to coded values
@@ -385,7 +385,7 @@ validate_import_select_dropdown_radio <- function(x, field_name, field_choice, l
     x[x==mapping[i, 2]] <- mapping[i, 1]  
   }
 
-  w <- which(!x %in% mapping[, 1] & !is.na(x))
+  w <- which(!x %in% mapping[, 1] & !x %in% c('', NA))
   
   print_validation_message(
     field_name,
@@ -442,7 +442,8 @@ validate_import_email <- function(x, field_name, logfile)
     field_name = field_name,
     indices = w,
     message = paste0("Value(s) are not valid e-mail addresses.\n",
-                     "Values not imported.")
+                     "Values not imported."),
+    logfile = logfile
   )
   
   x[w] <- NA

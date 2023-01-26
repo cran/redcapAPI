@@ -50,13 +50,7 @@
 #' with thanks to Josh O'Brien and etb (see references)
 #'
 #' @references
-#' \url{http://stackoverflow.com/questions/12393004/parsing-back-to-messy-api-strcuture/12435389#12435389}\cr
-#' \url{https://github.com/etb/my-R-code/blob/master/R-pull-and-push-from-and-to-REDCap.R}\cr
-#' See also the REDCap API documentation
-#' Please refer to your institution's API documentation.
-#'
-#' Additional details on API parameters are found on the package wiki at
-#' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+#' See the REDCap API documentation at your institution's REDCap documentation.
 #'
 #' @seealso \code{\link{validateImport}}
 #'
@@ -175,7 +169,7 @@ importRecords.redcapApiConnection <- function(rcon, data,
                          vapply(.opts, 
                                 FUN = length,
                                 FUN.VALUE = numeric(1))), 
-                     unlist(.opts), 
+                     tolower(unlist(.opts)), 
                      sep="___")
   
   with_complete_fields <- 
@@ -187,14 +181,14 @@ importRecords.redcapApiConnection <- function(rcon, data,
   w.remove <- 
     which(names(data) %in% 
             c("redcap_survey_identifier",
-              paste0(unique(meta_data$form_name), "_timestamp"),
-              "redcap_data_access_group"))
+              paste0(unique(meta_data$form_name), "_timestamp")))
   if (length(w.remove)) data <- data[-w.remove]
   
-  if (!all(names(data) %in% c(with_complete_fields, "redcap_event_name", "redcap_repeat_instrument", "redcap_repeat_instance")))
+  unrecognized_names <- !(names(data) %in% c(with_complete_fields, "redcap_event_name", "redcap_repeat_instrument", "redcap_repeat_instance"))
+  if (any(unrecognized_names))
   {
     coll$push(paste0("The variables ", 
-                     paste(names(data)[!names(data) %in% with_complete_fields], collapse=", "),
+                     paste(names(data)[unrecognized_names], collapse=", "),
                      " do not exist in the REDCap Data Dictionary"))
   }
   
@@ -361,8 +355,6 @@ import_records_batched <- function(rcon, data, batch.size,
 import_records_unbatched <- function(rcon, data, overwriteBehavior,
                                      returnContent)
 {
-  data[is.na(data)] <- ""
-
   out <- data_frame_to_string(data)
   
   ## Reattach attributes
@@ -395,7 +387,8 @@ data_frame_to_string <- function(data)
       utils::write.table(data, 
                          sep = ",",
                          col.names = TRUE,
-                         row.names = FALSE)
+                         row.names = FALSE,
+                         na = "")
     ),
     collapse = "\n"
   )

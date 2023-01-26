@@ -1,7 +1,7 @@
 #' Access data, meta data, and files from REDCap using the API
 #'
 #' REDCap is a database development tool built on MySQL.  Visit 
-#' \url{https://projectredcap.org} for more information.  REDCap
+#' \url{https://project-redcap.org} for more information.  REDCap
 #' provides an API through which data, the data dictionary, files, and
 #'  project information can be accessed.  The 
 #' \code{redcapAPI} package facilitates the use of these functions and 
@@ -27,9 +27,9 @@
 #' features specific to your version of REDCap.
 #' 
 #' \code{redcapAPI} wouldn't be possible without the efforts of Jeffrey 
-#' Horner, Will Gray, and Jeremy Stevens at 
-#' Vanderbilt University.  Their work in developing the \code{redcap} 
-#' package (\url{http://github.com/vubiostat/redcap}) 
+#' Horner, Will Gray, and Jeremy Stephens at 
+#' Vanderbilt University. Their work in developing the original \code{redcap} 
+#' package.
 #' was invaluable in helping me understand the API.  A few of their functions 
 #' (\code{redcapConnection}, 
 #' \code{fieldToVar}, \code{exportMetaData}, and \code{exportRecords}) are 
