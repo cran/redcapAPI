@@ -1,9 +1,10 @@
 Package: redcapAPI
 Type: Package
 Title: Interface to 'REDCap'
-Version: 2.3.3
+Version: 2.4.0
 Authors@R: c(
     person("Shawn", "Garbett", email = "shawn.garbett@vumc.org",
+           comment = c(ORCID="0000-0003-4079-5621"),
            role = c("cre","ctb")),
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
            role = c("ctb", "aut")),
@@ -27,13 +28,14 @@ License: GPL-2
 Depends: R (>= 3.0.0)
 Imports: checkmate, chron, httr, labelVector, lubridate, stringr, tidyr
 LazyLoad: yes
+Suggests: testthat (>= 3.0.0), getPass, keyring
 URL: https://github.com/vubiostat/redcapAPI,https://projectredcap.org
 BugReports: https://github.com/vubiostat/redcapAPI/issues
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2023-01-25 16:29:24 UTC; garbetsp
-Author: Shawn Garbett [cre, ctb],
+Packaged: 2023-03-01 19:49:49 UTC; garbetsp
+Author: Shawn Garbett [cre, ctb] (<https://orcid.org/0000-0003-4079-5621>),
   Benjamin Nutter [ctb, aut],
   Stephen Lane [ctb],
   Will Beasley [ctb],
@@ -42,4 +44,4 @@ Author: Shawn Garbett [cre, ctb],
   Jeremy Stephens [ctb],
   Marcus Lehr [ctb]
 Repository: CRAN
-Date/Publication: 2023-01-26 09:40:02 UTC
+Date/Publication: 2023-03-01 20:20:02 UTC
