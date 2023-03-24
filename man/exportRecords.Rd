@@ -2,7 +2,6 @@
 % Please edit documentation in R/exportRecords.R, R/exportRecords_offline.R
 \name{exportRecords}
 \alias{exportRecords}
-\alias{exportRecords.redcapDbConnection}
 \alias{exportRecords.redcapApiConnection}
 \alias{exportRecords_offline}
 \title{Export Records from a REDCap Database}
@@ -16,26 +15,11 @@ exportRecords(
   events = NULL,
   labels = TRUE,
   dates = TRUE,
+  drop = NULL,
   survey = TRUE,
   dag = TRUE,
   checkboxLabels = FALSE,
-  colClasses = NA,
-  ...
-)
-
-\method{exportRecords}{redcapDbConnection}(
-  rcon,
-  factors = TRUE,
-  fields = NULL,
-  forms = NULL,
-  records = NULL,
-  events = NULL,
-  labels = TRUE,
-  dates = TRUE,
-  survey = TRUE,
-  dag = TRUE,
-  checkboxLabels = FALSE,
-  colClasses = NA,
+  colClasses = character(0),
   ...
 )
 
@@ -48,10 +32,11 @@ exportRecords(
   events = NULL,
   labels = TRUE,
   dates = TRUE,
+  drop = NULL,
   survey = TRUE,
   dag = TRUE,
   checkboxLabels = FALSE,
-  colClasses = NA,
+  colClasses = character(0),
   ...,
   batch.size = -1,
   bundle = getOption("redcap_bundle"),
@@ -98,10 +83,14 @@ the data frame.}
 \item{dates}{Logical. Determines if date variables are converted to POSIXct 
 format during the download.}
 
+\item{drop}{An optional character vector of REDCap variable names to remove from the 
+dataset; defaults to NULL. E.g., \code{drop=c("date_dmy", "treatment")} 
+It is OK for drop to contain variables not present; these names are ignored.}
+
 \item{survey}{specifies whether or not to export the survey identifier field 
 (e.g., "redcap_survey_identifier") or survey timestamp fields 
 (e.g., form_name+"_timestamp") when surveys are utilized in the project. 
-If you do not pass in this flag, it will default to "false". If set to 
+If you do not pass in this flag, it will default to "true". If set to 
 "true", it will return the redcap_survey_identifier field and also the 
 survey timestamp field for a particular survey when at least 
 one field from that survey is being exported. NOTE: If the survey 

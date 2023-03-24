@@ -1,7 +1,4 @@
 #' @name exportInstruments
-#' @aliases exportInstruments.redcapApiConnection
-#' @aliases exportInstruments.redcapDbConnection
-#' @export exportInstruments
 #' @importFrom httr POST
 #'
 #' @title Exports the REDCap Instruments
@@ -34,26 +31,20 @@
 #' Please refer to your institution's API documentation.
 #'
 #' Additional details on API parameters are found on the package wiki at
-#' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+#' \url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 #'
-
-
-exportInstruments <- function(rcon, ...) UseMethod("exportInstruments")
-
-#' @rdname exportInstruments
 #' @export
 
-exportInstruments.redcapDbConnection <- function(rcon, ...){
-  message("Please accept my apologies.  The exportVersion method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
+exportInstruments <- function(rcon, ...){
+  UseMethod("exportInstruments")
 }
 
 #' @rdname exportInstruments
 #' @export
 
-exportInstruments.redcapApiConnection <- function(rcon, ...,
-                                                  error_handling = getOption("redcap_error_handling"))
-{
+exportInstruments.redcapApiConnection <- function(rcon, 
+                                                  ...,
+                                                  error_handling = getOption("redcap_error_handling")){
   coll <- checkmate::makeAssertCollection()
   
   checkmate::assert_class(x = rcon,

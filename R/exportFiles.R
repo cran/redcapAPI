@@ -53,29 +53,31 @@
 #' Please refer to your institution's API documentation.
 #' 
 #' Additional details on API parameters are found on the package wiki at
-#' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+#' \url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 #' 
 #' @export
 
-exportFiles <- function(rcon, record, field, event, dir, filePrefix=TRUE, ...,
-                        bundle = getOption("redcap_bundle"))
+exportFiles <- function(rcon, 
+                        record, 
+                        field, 
+                        event, 
+                        dir, 
+                        filePrefix = TRUE, 
+                        ...,
+                        bundle = getOption("redcap_bundle")){
   UseMethod("exportFiles")
-
-#' @rdname exportFiles
-#' @export
-
-exportFiles.redcapDbConnection <- function(rcon, record, field, event, dir, filePrefix=TRUE, ..., 
-                                           bundle = getOption("redcap_bundle")){
-  message("Please accept my apologies.  The exportFiles method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
 }
 
 #' @rdname exportFiles
 #' @export
 
-exportFiles.redcapApiConnection <- function(rcon, record, field, event = NULL, 
+exportFiles.redcapApiConnection <- function(rcon, 
+                                            record, 
+                                            field, 
+                                            event = NULL, 
                                             dir, 
-                                            filePrefix=TRUE, ...,
+                                            filePrefix = TRUE, 
+                                            ...,
                                             bundle = getOption("redcap_bundle"),
                                             error_handling = getOption("redcap_error_handling")){
   
@@ -128,11 +130,7 @@ exportFiles.redcapApiConnection <- function(rcon, record, field, event = NULL,
   checkmate::reportAssertions(coll)
   
   #* Secure the meta_data
-  meta_data <- 
-    if (is.null(bundle$meta_data)) 
-      exportMetaData(rcon)
-    else 
-      bundle$meta_data
+  meta_data <- rcon$metadata()
   
   #* make sure 'field' exist in the project and are 'file' fields
   if (!field %in% meta_data$field_name) 
@@ -145,11 +143,7 @@ exportFiles.redcapApiConnection <- function(rcon, record, field, event = NULL,
   }
   
   #* Secure the events list
-  events_list <- 
-    if (is.null(bundle$events))
-      exportEvents(rcon)
-    else
-      bundle$events
+  events_list <- rcon$events()
       
   #* make sure 'event' exists in the project
   if (inherits(events_list, "data.frame"))

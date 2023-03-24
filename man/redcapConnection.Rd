@@ -2,15 +2,16 @@
 % Please edit documentation in R/redcapConnection.R
 \name{redcapConnection}
 \alias{redcapConnection}
+\alias{print.redcapApiConnection}
 \title{Connect to a REDCap Database}
 \usage{
 redcapConnection(
   url = getOption("redcap_api_url"),
   token,
-  conn,
-  project,
   config = httr::config()
 )
+
+\method{print}{redcapApiConnection}(x, ...)
 }
 \arguments{
 \item{url}{URL for a REDCap database API.  Check your institution's REDCap 
@@ -19,29 +20,44 @@ be specified.}
 
 \item{token}{REDCap API token}
 
-\item{conn}{The database connection to be used. If used, \code{project}
-must also be used.}
-
-\item{project}{The project ID in the REDCap tables.}
-
 \item{config}{A list to be passed to \code{httr::POST}.  This allows the 
 user to set additional configurations for the API calls, such as 
 certificates, ssl version, etc. For the majority of users, this does 
 not need to be altered.  See Details for more about this argument's 
 purpose and the \code{redcapAPI} wiki for specifics on its use.}
+
+\item{x}{\code{redcapConnection} object to be printed}
+
+\item{...}{arguments to pass to other methods}
 }
 \description{
 Creates an object of class \code{redcapApiConnection} for 
-using the REDCap API [or a direct connection through an SQL server]
+using the REDCap API
 }
 \details{
+\code{redcapConnection} objects will retrieve and cache various forms of 
+project information. This can make metadata, arms, events, fieldnames, 
+arm-event mappings, users, version, and project information available
+directly from the \code{redcapConnection} object. Take note that 
+the retrieval of these objects uses the default values of the respective
+export functions. 
+
+For each of these objects, there are four methods that can be called from 
+the \code{redcapConnection} object: the get method (called via
+\code{rcon$metadata()}, for example); the has method (\code{rcon$has_metadata}), 
+which returns a logical indicating if the metadata has been cached; 
+the flush method (\code{rcon$flush_metadata}), which removes the cached value; 
+and the refresh method (\code{rcon$refresh_metadata}), which replaces the 
+current value with a new call to the API. There is also a \code{flush_all}
+and \code{refresh_all} method.
+
 For convenience, you may consider using 
 \code{options(redcap_api_url=[your URL here])} in your RProfile.
 To obtain an API token for a project, do the following:\cr
-Enter the 'User Right' section of a project\cr
+Enter the 'User Rights' section of a project\cr
 Select a user\cr
 Check the box for 'API Data Export' or 'API Data Import,' as appropriate.  A full tutorial on 
-configuring REDCap to use the API can be found at \url{https://github.com/nutterb/redcapAPI/wiki}
+configuring REDCap to use the API can be found at \url{https://github.com/vubiostat/redcapAPI/wiki}
 
 Tokens are specific to a project, and a token must be created for each 
 project for which you wish to use the API.
@@ -55,7 +71,7 @@ to date, so most of the time this problem can be resolved by updating
 certificate file can be manually passed via the \code{config} argument.  
 The \code{redcapAPI} wiki has a more detailed tutorial on how to 
 find and pass an SSL certificate to the API call 
-(\url{https://github.com/nutterb/redcapAPI/wiki/Manually-Setting-an-SSL-Certificate-File}).
+(\url{https://github.com/vubiostat/redcapAPI/wiki/Manually-Setting-an-SSL-Certificate-File}).
 
 Additional Curl option can be set in the \code{config} argument.  See the documentation
 for \code{httr::config} and \code{httr:httr_options} for more Curl options.
@@ -68,6 +84,16 @@ options(redcap_api_url=[YOUR_REDCAP_URL])
 rcon <- redcapConnection(token=[API_TOKEN])
 
 exportRecords(rcon)
+
+# Get the complete metadata for the project
+rcon$metadata()
+
+# Get the fieldnames for a project
+rcon$fieldnames()
+
+# remove a cached value for fieldnames
+rcon$flush_fieldnames()
+rcon$has_fieldnames()
 }
 
 }

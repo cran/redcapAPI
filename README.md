@@ -20,13 +20,3 @@ Issues may be reported at [Issues](https://github.com/vubiostat/redcapAPI/issues
 
 This package was developed under REDCap Version 13.2.4. Institutions can be a little behind on updating REDCap and so some features of the API may not always work.
 
-### Supplemental Gists
-
-* [Generate a Report of Fields with Missing Values in a REDCap Database Using the redcapAPI package](https://gist.github.com/nutterb/501c370418abb58bee78) (includes a version for "offline" use).
-
-### Transfer breakage to be fixed
-
-[![Build Status](https://travis-ci.org/nutterb/redcapAPI.png?branch=master)](https://travis-ci.org/nutterb/redcapAPI)
-[![Coverage Status](https://coveralls.io/repos/github/nutterb/redcapAPI/badge.svg?branch=master)](https://coveralls.io/github/nutterb/redcapAPI?branch=master)
-
-*Possible deprecation*. The redcapDbConnection methods are underdeveloped as I don't personally have access to the REDCap database (and so am unable to test features).  If you have that kind of access, feel free to develop the redcapDbConnection methods.

@@ -2,13 +2,10 @@
 % Please edit documentation in R/exportEvents.R
 \name{exportEvents}
 \alias{exportEvents}
-\alias{exportEvents.redcapDbConnection}
 \alias{exportEvents.redcapApiConnection}
 \title{Export the Events for a Project}
 \usage{
 exportEvents(rcon, ...)
-
-\method{exportEvents}{redcapDbConnection}(rcon, arms = NULL, ...)
 
 \method{exportEvents}{redcapApiConnection}(
   rcon,
@@ -50,6 +47,9 @@ neither of these conditions are satisfied, the API will return a message
 such as \code{ERROR: You cannot export arms for classic projects}, an 
 error message that isn't as descriptive of the nature of the problem as 
 we might like.
+
+If the project information reports that the project is not longitudinal, 
+a data frame with 0 rows is returned without calling the API.
 }
 \section{REDCap API Documentation}{
 
@@ -72,7 +72,7 @@ None
 Please refer to your institution's API documentation.
 
 Additional details on API parameters are found on the package wiki at
-\url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+\url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 }
 \author{
 Benjamin Nutter

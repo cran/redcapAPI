@@ -8,20 +8,21 @@
 #'   
 #' @param fields The current field names of interest
 #' @param meta_data The meta data data frame.
-#' @param version The REDCap version number.
 #' 
 #' @export
 
-checkbox_suffixes <- function(fields, meta_data, version)
+checkbox_suffixes <- function(fields, meta_data)
 {
   name_suffix <- sapply(X = fields, 
                         FUN = manual_checkbox_suffixes, 
-                        meta_data)
+                        meta_data, 
+                        simplify = FALSE)
 
   label_suffix <- 
     sapply(X = fields,
            FUN = manual_checkbox_label_suffixes,
-           meta_data)
+           meta_data, 
+           simplify = FALSE)
   
   list(name_suffix = unlist(name_suffix),
        label_suffix = unlist(label_suffix))
@@ -35,18 +36,10 @@ manual_checkbox_suffixes <- function(x, meta_data)
 {
   #* If x is a checkbox variable
   if (meta_data$field_type[meta_data$field_name %in% x] == "checkbox"){
-    #* Remove characters between "|" and ","; and between "|" and end of string.
-    opts <- gsub(pattern = "(?<=,)(.*?)(?=([|]|$))", 
-                 replacement = "", 
-                 x = meta_data$select_choices_or_calculations[meta_data$field_name %in% x], 
-                 perl = TRUE)
-    #* Split by "|" then remove any commas or spaces
-    opts <- strsplit(x = opts, 
-                     split = "\\|")[[1]]
-    opts <- tolower(gsub(pattern = ",| ", 
-                 replacement = "", 
-                 x = opts))
-    #* Assemble labels
+    field_choice <- meta_data$select_choices_or_calculations[meta_data$field_name %in% x]
+    opts <- fieldChoiceMapping(field_choice)
+    opts <- tolower(opts)[, 1]
+    
     x <- paste(x, opts, sep="___")
   }
   x
@@ -58,13 +51,9 @@ manual_checkbox_label_suffixes <- function(x, meta_data)
   #* If x is a checkbox variable
   if (meta_data$field_type[meta_data$field_name %in% x] == "checkbox"){
     #* Select choices
-    opts <- meta_data$select_choices_or_calculations[meta_data$field_name %in% x]
-    #* Remove choice numbers, split, then remove spaces
-    opts <- gsub("\\d,", "", opts)
-    opts <- strsplit(x = opts,
-                     split = "[|]")[[1]]
-    opts <- gsub("(^ *| *$)", "", opts)
-    #* Assemble labels
+    field_choice <- meta_data$select_choices_or_calculations[meta_data$field_name %in% x]
+    opts <- fieldChoiceMapping(field_choice)[, 2]
+
     paste0(meta_data$field_label[meta_data$field_name %in% x], ": ", opts)
   }
   else 

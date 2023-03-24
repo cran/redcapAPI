@@ -45,6 +45,29 @@
 #'
 #' See the documentation for \code{\link{validateImport}} for detailed
 #' explanations of the validation.
+#' 
+#' @section Limitations:
+#' 
+#' The REDCap API is fairly restrictive about what it will accept as valid data for import. 
+#' \code{importRecords} tries to simplify the process by allowing users to 
+#' submit data in any form recognized by the data dictionary. It is then converted
+#' internally to the 
+#' appropriate text format for import. This means, for example, that a radio button value
+#' where the code \code{1} is mapped to the label \code{Guitar} (defined in the user interface
+#' with "1, Guitar"), the user can provide
+#' either "1" or "Guitar" as a value and \code{importRecords} will translate it to the 
+#' code that the API expects. 
+#' 
+#' While this provides a level of convenience for the user, it has some limitations when
+#' applied to checkbox values. When submitting checkbox values for import, it is strongly 
+#' recommended that you submit either the code "0" (for unchecked), "1" (for checked), or the 
+#' labels "Unchecked" and "Checked". 
+#' 
+#' In particular, when the checkbox labels are defined with a code or label that is "0" or "1"
+#' (for example, "0, checkbox_label" or "check_code, 0"), \code{importRecords} is unable to 
+#' determine if a 0 indicates an unchecked box or if the zero is the label of a checked box. 
+#' When encountering ambiguity, \code{importRecords} will always assume "0" represents an
+#' unchecked box and "1" represents a checked box.
 #'
 #' @author Benjamin Nutter\cr
 #' with thanks to Josh O'Brien and etb (see references)
@@ -56,35 +79,28 @@
 #'
 #' @export
 
-importRecords <- function(rcon, data,
-                          overwriteBehavior=c('normal', 'overwrite'),
-                          returnContent=c('count', 'ids', 'nothing'),
-                          returnData=FALSE, logfile="", ...) 
-{
+importRecords <- function(rcon, 
+                          data,
+                          overwriteBehavior = c('normal', 'overwrite'),
+                          returnContent = c('count', 'ids', 'nothing'),
+                          returnData = FALSE, 
+                          logfile="", 
+                          ...){
   UseMethod("importRecords")
 }
 
 #' @rdname importRecords
 #' @export
 
-importRecords.redcapDbConnection <- function(rcon, data,
-                                             overwriteBehavior=c('normal', 'overwrite'),
-                                             returnContent=c('count', 'ids', 'nothing'),
-                                             returnData=FALSE, logfile="", ...){
-  message("Please accept my apologies.  The importRecords method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
-}
-
-#' @rdname importRecords
-#' @export
-
-importRecords.redcapApiConnection <- function(rcon, data,
+importRecords.redcapApiConnection <- function(rcon, 
+                                              data,
                                               overwriteBehavior = c('normal', 'overwrite'),
                                               returnContent = c('count', 'ids', 'nothing'),
-                                              returnData = FALSE, logfile = "", 
+                                              returnData = FALSE, 
+                                              logfile = "", 
                                               ...,
-                                              bundle = NULL, batch.size=-1)
-{
+                                              bundle = NULL, 
+                                              batch.size=-1){
   if (!is.na(match("proj", names(list(...)))))
   {
     message("The 'proj' argument is deprecated.  Please use 'bundle' instead")
@@ -125,17 +141,9 @@ importRecords.redcapApiConnection <- function(rcon, data,
   
   checkmate::reportAssertions(coll)
   
-  meta_data <- 
-    if (is.null(bundle$meta_data)) 
-      exportMetaData(rcon) 
-    else 
-      bundle$meta_data
-  
-  version <- 
-    if (is.null(bundle$version))
-      exportVersion(rcon)
-    else 
-      bundle$version
+  meta_data <- rcon$metadata()
+
+  version <- rcon$version()
 
   if (utils::compareVersion(version, "5.5.21") == -1 )
     meta_data <- syncUnderscoreCodings(data, 
@@ -143,8 +151,7 @@ importRecords.redcapApiConnection <- function(rcon, data,
                                        export = FALSE)
   
   suffixed <- checkbox_suffixes(fields = meta_data$field_name,
-                                meta_data = meta_data, 
-                                version = version)
+                                meta_data = meta_data)
   
   form_names <- unique(meta_data$form_name)
   

@@ -3,12 +3,9 @@
 \name{exportInstruments}
 \alias{exportInstruments}
 \alias{exportInstruments.redcapApiConnection}
-\alias{exportInstruments.redcapDbConnection}
 \title{Exports the REDCap Instruments}
 \usage{
 exportInstruments(rcon, ...)
-
-\method{exportInstruments}{redcapDbConnection}(rcon, ...)
 
 \method{exportInstruments}{redcapApiConnection}(
   rcon,
@@ -53,7 +50,7 @@ None
 Please refer to your institution's API documentation.
 
 Additional details on API parameters are found on the package wiki at
-\url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+\url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 }
 \author{
 Benjamin Nutter

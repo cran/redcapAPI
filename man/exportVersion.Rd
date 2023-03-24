@@ -2,13 +2,10 @@
 % Please edit documentation in R/exportVersion.R
 \name{exportVersion}
 \alias{exportVersion}
-\alias{exportVersion.redcapDbConnection}
 \alias{exportVersion.redcapApiConnection}
 \title{Exports the REDCap Version Number}
 \usage{
 exportVersion(rcon, ...)
-
-\method{exportVersion}{redcapDbConnection}(rcon, ...)
 
 \method{exportVersion}{redcapApiConnection}(rcon, ..., error_handling = getOption("redcap_error_handling"))
 }
@@ -50,7 +47,7 @@ None
 Please refer to your institution's API documentation.
 
 Additional details on API parameters are found on the package wiki at
-\url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+\url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 }
 \author{
 Benjamin Nutter

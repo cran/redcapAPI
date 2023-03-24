@@ -1,12 +1,17 @@
 #' @rdname exportRecords
 #' @export
 
-exportRecords_offline <- function(dataFile, metaDataFile, 
-                                  factors = TRUE, fields = NULL,
-                                  forms=NULL, labels = TRUE,
-                                  dates = TRUE, checkboxLabels = FALSE, 
+exportRecords_offline <- function(dataFile, 
+                                  metaDataFile, 
+                                  factors = TRUE, 
+                                  fields = NULL,
+                                  forms=NULL, 
+                                  labels = TRUE,
+                                  dates = TRUE, 
+                                  checkboxLabels = FALSE, 
                                   colClasses = NA,
-                                  ..., meta_data)
+                                  ..., 
+                                  meta_data)
 {
   if (!missing(meta_data)){
     warning("Argument `meta_data` has been deprecated. Please use `metaDataFile` instead.")
@@ -94,8 +99,7 @@ exportRecords_offline <- function(dataFile, metaDataFile,
   }  
   
   suffixed <- checkbox_suffixes(fields = field_names,
-                                meta_data = meta_data, 
-                                version = version)
+                                meta_data = meta_data)
   
   
   x <- utils::read.csv(dataFile, 
@@ -106,6 +110,7 @@ exportRecords_offline <- function(dataFile, metaDataFile,
                   meta_data = meta_data, 
                   factors = factors, 
                   dates = dates, 
+                  labels=labels,
                   checkboxLabels = checkboxLabels,
                   ...)
   
@@ -122,5 +127,12 @@ exportRecords_offline <- function(dataFile, metaDataFile,
              },
              SIMPLIFY = FALSE)
   }
+  
+  
+  # drop
+  if(length(drop)) {
+    x <- x[!names(x) %in% drop]
+  } # end drop
+  
   x  
 }

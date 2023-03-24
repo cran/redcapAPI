@@ -2,21 +2,21 @@
 % Please edit documentation in R/exportUsers.R
 \name{exportUsers}
 \alias{exportUsers}
-\alias{exportUsers.redcapDbConnection}
 \alias{exportUsers.redcapApiConnection}
 \title{Export the Users for a Project}
 \usage{
 exportUsers(rcon, ...)
 
-\method{exportUsers}{redcapDbConnection}(rcon, dates = TRUE, labels = TRUE, ...)
-
 \method{exportUsers}{redcapApiConnection}(
   rcon,
   dates = TRUE,
   labels = TRUE,
+  form_rights = TRUE,
   ...,
   bundle = getOption("redcap_bundle"),
-  error_handling = getOption("redcap_error_handling")
+  error_handling = getOption("redcap_error_handling"),
+  config = list(),
+  api_param = list()
 )
 }
 \arguments{
@@ -24,16 +24,29 @@ exportUsers(rcon, ...)
 
 \item{...}{Arguments to be passed to other methods.}
 
-\item{dates}{Logical. Indicates if the expiration date is converted to a
+\item{dates}{\code{logical(1)} Indicates if the expiration date is converted to a
 \code{POSIXct} object.}
 
-\item{labels}{Logical. Indicates if the data export and form access rights are
+\item{labels}{\code{logical(1)} Indicates if the data export and form access rights are
 converted to factor objects.}
+
+\item{form_rights}{\code{logical(1)} Indicates if the form rights should be 
+transformed to one column per form. The API-provided character string
+is always returned with the format [form_name]:[access_code] and a comma separating
+each form.}
 
 \item{bundle}{A \code{redcap_bundle} object.}
 
 \item{error_handling}{An option for how to handle errors returned by the API.
 see \code{\link{redcap_error}}}
+
+\item{config}{\code{list} Additional configuration parameters to pass to 
+\code{\link[httr]{POST}}. These are appended to any parameters in 
+\code{rcon$config}.}
+
+\item{api_param}{\code{list} Additional API parameters to pass into the
+body of the API call. This provides users to execute calls with options
+that may not otherwise be supported by \code{redcapAPI}.}
 }
 \value{
 Returns a data frame. The number of columns in the data frame will depend on your 
@@ -90,7 +103,7 @@ None
 Please refer to your institution's API documentation.
 
 Additional details on API parameters are found on the package wiki at
-\url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+\url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 }
 \author{
 Benjamin Nutter

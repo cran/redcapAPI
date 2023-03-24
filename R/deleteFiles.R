@@ -21,25 +21,24 @@
 #' Please refer to your institution's API documentation.
 #' 
 #' Additional details on API parameters are found on the package wiki at
-#' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+#' \url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 #'  
 #' @export
 
-deleteFiles <- function(rcon, record, field, event, ...)
+deleteFiles <- function(rcon, 
+                        record, 
+                        field, 
+                        event, ...){
   UseMethod("deleteFiles")
-
-#' @rdname deleteFiles
-#' @export 
-deleteFiles.redcapDbConnection <- function(rcon, record, field, event, ...){
-  message("Please accept my apologies.  The deleteFiles method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
 }
 
 #' @rdname deleteFiles
 #' @export
 
-deleteFiles.redcapApiConnection <- function(rcon, record = NULL, 
-                                            field = NULL, event = NULL, ..., 
+deleteFiles.redcapApiConnection <- function(rcon, 
+                                            record = NULL, 
+                                            field = NULL, 
+                                            event = NULL, ..., 
                                             bundle = getOption("redcap_bundle"),
                                             error_handling = getOption("redcap_error_handling")){
   if (is.numeric(record)) record <- as.character(record)
@@ -67,10 +66,8 @@ deleteFiles.redcapApiConnection <- function(rcon, record = NULL,
   checkmate::reportAssertions(coll)
   
   #* make sure 'field' exist in the project and are 'file' fields
-  if (is.null(bundle$meta_data))
-  {
-    meta_data <- exportMetaData(rcon)
-  }
+  meta_data <- rcon$metadata()
+  
   if (!field %in% meta_data$field_name) 
     coll$push(paste0("'", field, "' does not exist in the project."))
   
@@ -78,8 +75,7 @@ deleteFiles.redcapApiConnection <- function(rcon, record = NULL,
     coll$push(paste0("'", field, "' is not of field type 'file'"))
   
   #* make sure 'event' exists in the project
-  if (is.null(bundle$events)) 
-    events_list <- exportEvents(rcon)
+  events_list <- rcon$events()
   
   if (inherits(events_list,"data.frame"))
   {

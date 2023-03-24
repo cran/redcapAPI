@@ -28,7 +28,7 @@
 #' @param survey specifies whether or not to export the survey identifier field 
 #'   (e.g., "redcap_survey_identifier") or survey timestamp fields 
 #'   (e.g., form_name+"_timestamp") when surveys are utilized in the project. 
-#'   If you do not pass in this flag, it will default to "false". If set to 
+#'   If you do not pass in this flag, it will default to "true". If set to 
 #'   "true", it will return the redcap_survey_identifier field and also the 
 #'   survey timestamp field for a particular survey when at least 
 #'   one field from that survey is being exported. NOTE: If the survey 
@@ -65,7 +65,9 @@
 #'   be retrieved.  When \code{FALSE}, these fields must be 
 #'   explicitly requested.
 #' @param meta_data Deprecated version of \code{metaDataFile}
-#' 
+#' @param drop An optional character vector of REDCap variable names to remove from the 
+#'   dataset; defaults to NULL. E.g., \code{drop=c("date_dmy", "treatment")} 
+#'   It is OK for drop to contain variables not present; these names are ignored.
 #' @details
 #' A record of exports through the API is recorded in the Logging section 
 #' of the project.
@@ -151,33 +153,20 @@
 
 exportRecords <-
   function(rcon, factors = TRUE, fields = NULL, forms = NULL, records = NULL,
-           events = NULL, labels = TRUE, dates = TRUE,
+           events = NULL, labels = TRUE, dates = TRUE, drop = NULL,
            survey = TRUE, dag = TRUE, checkboxLabels = FALSE, 
-           colClasses = NA, ...)
+           colClasses = character(0), ...)
     
     UseMethod("exportRecords")
-
-#' @rdname exportRecords
-#' @export
-#' 
-exportRecords.redcapDbConnection <- 
-  function(rcon, factors = TRUE, fields = NULL, forms = NULL, records = NULL,
-           events = NULL, labels = TRUE, dates = TRUE,
-           survey = TRUE, dag = TRUE, checkboxLabels = FALSE, 
-           colClasses = NA, ...)
-  {
-    message("Please accept my apologies.  The exportRecords method for redcapDbConnection objects\n",
-            "has not yet been written.  Please consider using the API.")
-  }
 
 #' @rdname exportRecords
 #' @export
 
 exportRecords.redcapApiConnection <- 
   function(rcon, factors = TRUE, fields = NULL, forms = NULL,
-           records = NULL, events = NULL, labels = TRUE, dates = TRUE,
+           records = NULL, events = NULL, labels = TRUE, dates = TRUE, drop = NULL,
            survey = TRUE, dag = TRUE, checkboxLabels = FALSE,
-           colClasses = NA, ...,
+           colClasses = character(0), ...,
            batch.size = -1,
            bundle = getOption("redcap_bundle"),
            error_handling = getOption("redcap_error_handling"),
@@ -188,6 +177,7 @@ exportRecords.redcapApiConnection <-
     message("The 'proj' argument is deprecated.  Please use 'bundle' instead")
     bundle <- list(...)[["proj"]]
   }
+  message("The call syntax of exportRecords will undergo a breaking change in the upcoming 3.0.0 release. See Issue #10")
 
   if (is.numeric(records)) records <- as.character(records)
 
@@ -216,33 +206,28 @@ exportRecords.redcapApiConnection <-
   error_handling <- checkmate::matchArg(x = error_handling,
                                         choices = c("null", "error"),
                                         add = coll)
+  
+  if (is.list(colClasses)){
+    colClasses <- unlist(colClasses)
+  }
+  
+    checkmate::assert_character(x = colClasses, 
+                                names = "named", 
+                                add = coll)
 
   checkmate::reportAssertions(coll)
-
-  #* Secure the meta data.
-  meta_data <-
-    if (is.null(bundle$meta_data))
-      exportMetaData(rcon)
-    else
-      bundle$meta_data
-
+  
+  meta_data <- rcon$metadata()
+  
   #* for purposes of the export, we don't need the descriptive fields.
   #* Including them makes the process more error prone, so we'll ignore them.
   meta_data <- meta_data[!meta_data$field_type %in% "descriptive", ]
 
   #* Secure the events table
-  events_list <-
-    if (is.null(bundle$events))
-      exportEvents(rcon)
-    else
-      bundle$events
+  events_list <- rcon$events()
 
   #* Secure the REDCap version
-  version <-
-    if (is.null(bundle$version))
-      exportVersion(rcon)
-    else
-      bundle$version
+  version <- rcon$version()
 
   form_complete_fields <-
     sprintf("%s_complete",
@@ -306,8 +291,7 @@ exportRecords.redcapApiConnection <-
       # The subset prevents `[form]_complete` fields from
       # being included here.
       fields = field_names[field_names %in% meta_data$field_name],
-      meta_data = meta_data,
-      version = version)
+      meta_data = meta_data)
 
   # Identify the forms from which the chosen fields are found
   included_form <-
@@ -333,7 +317,7 @@ exportRecords.redcapApiConnection <-
   if (!is.null(forms)) body[['forms']] <- paste0(forms, collapse=",")
   if (!is.null(events)) body[['events']] <- paste0(events, collapse=",")
   if (!is.null(records)) body[['records']] <- paste0(records, collapse=",")
-
+  
   if (batch.size < 1){
     x <- unbatched(rcon = rcon,
                    body = body,
@@ -360,6 +344,7 @@ exportRecords.redcapApiConnection <-
                   meta_data = meta_data,
                   factors = factors,
                   dates = dates,
+                  labels = labels,
                   checkboxLabels = checkboxLabels,
                   ...)
 
@@ -377,6 +362,13 @@ exportRecords.redcapApiConnection <-
              SIMPLIFY = FALSE)
   }
 
+  
+  
+  # drop
+  if(length(drop)) {
+    x <- x[!names(x) %in% drop]
+  } # end drop
+  
   x
 }
 

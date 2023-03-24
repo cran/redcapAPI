@@ -2,13 +2,10 @@
 % Please edit documentation in R/exportMappings.R
 \name{exportMappings}
 \alias{exportMappings}
-\alias{exportMappings.redcapDbConnection}
 \alias{exportMappings.redcapApiConnection}
 \title{Exports the Event-Form Mappings for a Project}
 \usage{
 exportMappings(rcon, arms, ...)
-
-\method{exportMappings}{redcapDbConnection}(rcon, arms, ...)
 
 \method{exportMappings}{redcapApiConnection}(
   rcon,
@@ -34,11 +31,9 @@ Retrieve a data frame giving the events-form mapping for a project.
 \details{
 The data frame that is returned shows the arm number, unique 
 event name, and forms mapped in a project.
-
-When this function is called for a classic project, a character string is
- returned giving the API error message, '400: You cannot export form-event 
- mappings for classic projects' but without casting an error in R. This is 
- by design and allows more flexible error checks in certain functions.
+ 
+If the project information reports that the project is not longitudinal, 
+a data frame with 0 rows is returned without calling the API.
 }
 \section{REDCap API Documentation}{
 
@@ -63,7 +58,7 @@ None
 Please refer to your institution's API documentation.
 
 Additional details on API parameters are found on the package wiki at
-\url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+\url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 }
 \author{
 Benjamin Nutter

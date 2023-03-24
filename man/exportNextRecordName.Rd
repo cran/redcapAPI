@@ -2,13 +2,10 @@
 % Please edit documentation in R/exportNextRecordName.R
 \name{exportNextRecordName}
 \alias{exportNextRecordName}
-\alias{exportNextRecordName.redcapDbConnection}
 \alias{exportNextRecordName.redcapApiConnection}
 \title{Generate Next Record Name from a REDCap Database}
 \usage{
 exportNextRecordName(rcon, ...)
-
-\method{exportNextRecordName}{redcapDbConnection}(rcon, ...)
 
 \method{exportNextRecordName}{redcapApiConnection}(
   rcon,
@@ -51,7 +48,7 @@ what the next record name would be.
 Please refer to your institution's API documentation.
 
 Additional details on API parameters are found on the package wiki at
-\url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+\url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 }
 \author{
 Xuefei Jia

@@ -64,48 +64,46 @@
 #' @references
 #' More instruction on using \code{redcapAPI} to produce allocation tables is
 #'   on the package wiki:
-#'   \url{https://github.com/nutterb/redcapAPI/wiki/Randomization-Module}
+#'   \url{https://github.com/vubiostat/redcapAPI/wiki/Randomization-Module}
 #'   
 #' Please refer to your institution's API documentation.
 #' 
 #' Additional details on API parameters are found on the package wiki at
-#' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+#' \url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 #' @export
 
-allocationTable <- function(rcon, random, strata = NULL, 
-                            group = NULL, dag.id = NULL, 
-                            replicates, block.size, 
+allocationTable <- function(rcon, 
+                            random, 
+                            strata = NULL, 
+                            group = NULL, 
+                            dag.id = NULL, 
+                            replicates, 
+                            block.size, 
                             block.size.shift = 0,
-                            seed.dev = NULL, seed.prod = NULL,  
+                            seed.dev = NULL, 
+                            seed.prod = NULL,  
                             bundle = NULL, 
-                            weights = NULL, ...)
+                            weights = NULL, 
+                            ...){
   UseMethod("allocationTable")
-
-#' @rdname allocationTable
-#' @export
-
-allocationTable.redcapDbConnection <- function(rcon, random, strata = NULL, 
-                                               group = NULL, dag.id = NULL, 
-                                               replicates, block.size, 
-                                               block.size.shift = 0,
-                                               seed.dev = NULL, seed.prod = NULL,  
-                                               bundle = NULL, 
-                                               weights = c(1, 1), ...){
-  message("Please accept my apologies.  The exportUsers method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
 }
 
 #' @rdname allocationTable
 #' @export
 
-allocationTable.redcapApiConnection <- function(rcon, random, strata = NULL, 
-                                                group = NULL, dag.id = NULL, 
-                                                replicates, block.size, 
+allocationTable.redcapApiConnection <- function(rcon, 
+                                                random, 
+                                                strata = NULL, 
+                                                group = NULL, 
+                                                dag.id = NULL, 
+                                                replicates, 
+                                                block.size, 
                                                 block.size.shift = 0,
-                                                seed.dev = NULL, seed.prod = NULL,  
+                                                seed.dev = NULL, 
+                                                seed.prod = NULL,  
                                                 bundle = NULL, 
-                                                weights = c(1, 1), ...)
-{
+                                                weights = c(1, 1), 
+                                                ...){
   if (!is.na(match("proj", names(list(...)))))
   {
     message("The 'proj' argument is deprecated.  Please use 'bundle' instead")
@@ -125,8 +123,8 @@ allocationTable.redcapApiConnection <- function(rcon, random, strata = NULL,
   {
     if (meta_data$field_type[meta_data$field_name == v] %in% c("dropdown", "radio")){
       choice_str <- meta_data$select_choices_or_calculations[meta_data$field_name == v]
-      choice_str <- unlist(strsplit(choice_str, " [|] "))
-      return(stringr::str_split_fixed(choice_str, ", ", 2)[, (2-raw)])
+      choice_str <- fieldChoiceMapping(choice_str)
+      return(choice_str[, (2-raw)])
     }
     else if (meta_data$field_type[meta_data$field_name == v] %in% c("yesno", "true_false"))
       return(0:1)

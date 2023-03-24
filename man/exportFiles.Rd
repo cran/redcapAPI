@@ -2,22 +2,10 @@
 % Please edit documentation in R/exportFiles.R
 \name{exportFiles}
 \alias{exportFiles}
-\alias{exportFiles.redcapDbConnection}
 \alias{exportFiles.redcapApiConnection}
 \title{Exports a File attached to a Record}
 \usage{
 exportFiles(
-  rcon,
-  record,
-  field,
-  event,
-  dir,
-  filePrefix = TRUE,
-  ...,
-  bundle = getOption("redcap_bundle")
-)
-
-\method{exportFiles}{redcapDbConnection}(
   rcon,
   record,
   field,
@@ -107,7 +95,7 @@ None
 Please refer to your institution's API documentation.
 
 Additional details on API parameters are found on the package wiki at
-\url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+\url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 }
 \author{
 Benjamin Nutter

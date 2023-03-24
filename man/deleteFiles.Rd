@@ -2,13 +2,10 @@
 % Please edit documentation in R/deleteFiles.R
 \name{deleteFiles}
 \alias{deleteFiles}
-\alias{deleteFiles.redcapDbConnection}
 \alias{deleteFiles.redcapApiConnection}
 \title{Delete a File attached to a Record}
 \usage{
 deleteFiles(rcon, record, field, event, ...)
-
-\method{deleteFiles}{redcapDbConnection}(rcon, record, field, event, ...)
 
 \method{deleteFiles}{redcapApiConnection}(
   rcon,
@@ -46,7 +43,7 @@ attached to an individual record
 Please refer to your institution's API documentation.
 
 Additional details on API parameters are found on the package wiki at
-\url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+\url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 }
 \author{
 Benjamin Nutter

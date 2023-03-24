@@ -6,7 +6,7 @@
 # This helper will pull the required values from a keyring
 # similar to how `rccola` works for securitiy purposes.
 # This package cannot depend on `rccola` without creating 
-# a circular dependency so minimal code is copyied locally
+# a circular dependency so minimal code is copied locally
 # 
 # To duplicate our test database see: inst/extdata
 #
@@ -18,15 +18,14 @@
 # To remove invalid password/API_KEY
 #   keyring::key_delete('TestRedcapAPI', 'TestRedcapAPI', 'TestRedcapAPI')
 
-options(keyring_backend=keyring::backend_file) # Because MACOS is so irritating 
 url <- "https://redcap.vanderbilt.edu/api/" # Our institutions REDCap instance
-if(!exists("password"))
-{
+if(!exists("password")){
   password <- getPass::getPass("Enter Password for keyring 'testRedcapAPI'")
 }
 
-if(!exists("API_KEY"))
-{
+if(!exists("API_KEY")){
   keyring::keyring_unlock('TestRedcapAPI', password)
   API_KEY <- keyring::key_get('TestRedcapAPI', 'TestRedcapAPI', 'TestRedcapAPI')
 }
+
+library(checkmate) # for additional expect_* functions.

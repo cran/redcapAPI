@@ -30,25 +30,30 @@
 #' 
 #' @export
 
-importFiles <- function(rcon, file, record, field, event, overwrite=TRUE, ...,
-                        bundle=NULL, repeat_instance = NULL)
+importFiles <- function(rcon, 
+                        file, 
+                        record, 
+                        field, 
+                        event, 
+                        overwrite=TRUE, 
+                        ...,
+                        bundle=NULL, 
+                        repeat_instance = NULL){
   UseMethod("importFiles")
-
-#' @rdname importFiles
-#' @export
-
-importFiles.redcapDbConnection <- function(rcon, file, record, field, event, overwrite=TRUE, ..., 
-                                           bundle=NULL, repeat_instance = NULL){
-  message("Please accept my apologies.  The importFiles method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
 }
 
 #' @rdname importFiles
 #' @export
 
-importFiles.redcapApiConnection <- function(rcon, file, record, field, event = NULL, 
-                                            overwrite=TRUE, repeat_instance = NULL, ...,
-                                            bundle=NULL,
+importFiles.redcapApiConnection <- function(rcon, 
+                                            file, 
+                                            record, 
+                                            field, 
+                                            event = NULL, 
+                                            overwrite = TRUE,
+                                            repeat_instance = NULL, 
+                                            ...,
+                                            bundle = NULL,
                                             error_handling = getOption("redcap_error_handling")){
   
   if (!is.na(match("proj", names(list(...)))))
@@ -91,9 +96,8 @@ importFiles.redcapApiConnection <- function(rcon, file, record, field, event = N
     coll$push(paste0("No file found at '", file, "'"))
   
   #* make sure 'field' exist in the project and are 'file' fields
-  if (is.null(bundle$meta_data)) 
-    meta_data <- exportMetaData(rcon)
-  
+  meta_data <- rcon$metadata()
+
   if (!field %in% meta_data$field_name) 
     coll$push(paste("'", field, "' does not exist in the project.", sep=""))
   
@@ -101,9 +105,8 @@ importFiles.redcapApiConnection <- function(rcon, file, record, field, event = N
     coll$push(paste0("'", field, "' is not of field type 'file'"))
   
   #* make sure 'event' exists in the project
-  if (is.null(bundle$events)) 
-    events_list <- exportEvents(rcon)
-  
+  events_list <- rcon$events()
+
   if (inherits(events_list,'data.frame'))
   {
     if (!event %in% events_list$unique_event_name) 

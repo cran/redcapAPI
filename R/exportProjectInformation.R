@@ -1,8 +1,4 @@
 #' @name exportProjectInformation
-#' @aliases exportProjectInformation.redcapApiConnection
-#' @aliases exportProjectInformation.redcapDbConnection
-#' @export exportProjectInformation
-#' @importFrom httr POST
 #'
 #' @title Exports the Project Information
 #' @description Retrieve a data frame with the project information.
@@ -33,24 +29,21 @@
 #' Please refer to your institution's API documentation.
 #'
 #' Additional details on API parameters are found on the package wiki at
-#' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+#' \url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 #'
-
-
-exportProjectInformation <- function(rcon, ...) UseMethod("exportProjectInformation")
-
-#' @rdname exportProjectInformation
 #' @export
 
-exportProjectInformation.redcapDbConnection <- function(rcon, ...){
-  message("Please accept my apologies.  The exportVersion method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
+
+exportProjectInformation <- function(rcon, 
+                                     ...){
+  UseMethod("exportProjectInformation")
 }
 
 #' @rdname exportProjectInformation
 #' @export
 
-exportProjectInformation.redcapApiConnection <- function(rcon, ...,
+exportProjectInformation.redcapApiConnection <- function(rcon, 
+                                                         ...,
                                                          error_handling = getOption("redcap_error_handling")){
   coll <- checkmate::makeAssertCollection()
   

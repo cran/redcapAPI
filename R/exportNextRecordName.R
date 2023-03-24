@@ -30,26 +30,22 @@
 #' Please refer to your institution's API documentation.
 #'
 #' Additional details on API parameters are found on the package wiki at
-#' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+#' \url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 #'
 #' @export
 
-exportNextRecordName <- function(rcon, ...) UseMethod("exportNextRecordName")
-
-#' @rdname exportNextRecordName
-#' @export
-
-exportNextRecordName.redcapDbConnection <- function(rcon, ...){
-  message("Please accept my apologies.  The exportNextRecordName method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
+exportNextRecordName <- function(rcon, 
+                                 ...){
+  UseMethod("exportNextRecordName")
 }
 
 #' @rdname exportNextRecordName
 #' @export
 
 
-exportNextRecordName.redcapApiConnection <- function(rcon, ...,
-                                              error_handling = getOption("redcap_error_handling")){
+exportNextRecordName.redcapApiConnection <- function(rcon, 
+                                                     ...,
+                                                     error_handling = getOption("redcap_error_handling")){
   coll <- checkmate::makeAssertCollection()
   
   checkmate::assert_class(x = rcon,

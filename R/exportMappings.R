@@ -11,11 +11,9 @@
 #' 
 #' @details The data frame that is returned shows the arm number, unique 
 #' event name, and forms mapped in a project.
-#' 
-#' When this function is called for a classic project, a character string is
-#'  returned giving the API error message, '400: You cannot export form-event 
-#'  mappings for classic projects' but without casting an error in R. This is 
-#'  by design and allows more flexible error checks in certain functions.
+#'  
+#' If the project information reports that the project is not longitudinal, 
+#' a data frame with 0 rows is returned without calling the API. 
 #' 
 #' @section REDCap API Documentation:
 #' This function allows you to export the instrument-event mappings for a project 
@@ -36,24 +34,22 @@
 #' Please refer to your institution's API documentation.
 #' 
 #' Additional details on API parameters are found on the package wiki at
-#' \url{https://github.com/nutterb/redcapAPI/wiki/REDCap-API-Parameters}
+#' \url{https://github.com/vubiostat/redcapAPI/wiki/REDCap-API-Parameters}
 #' 
 #' @export 
 
-exportMappings <- function(rcon, arms, ...) UseMethod("exportMappings")
-
-#' @rdname exportMappings
-#' @export
-
-exportMappings.redcapDbConnection <- function(rcon, arms, ...){
-  message("Please accept my apologies.  The exportMappings method for redcapDbConnection objects\n",
-          "has not yet been written.  Please consider using the API.")
+exportMappings <- function(rcon, 
+                           arms, 
+                           ...){
+  UseMethod("exportMappings")
 }
 
 #' @rdname exportMappings
 #' @export
 
-exportMappings.redcapApiConnection <- function(rcon, arms = NULL, ...,
+exportMappings.redcapApiConnection <- function(rcon, 
+                                               arms = NULL, 
+                                               ...,
                                                error_handling = getOption("redcap_error_handling")){
   coll <- checkmate::makeAssertCollection()
   
@@ -70,6 +66,12 @@ exportMappings.redcapApiConnection <- function(rcon, arms = NULL, ...,
                                         add = coll)
   
   checkmate::reportAssertions(coll)
+  
+  if (rcon$projectInformation()$is_longitudinal == 0){
+    return(data.frame(arm_num = numeric(0), 
+                      unique_event_name = character(0), 
+                      form = character(0)))
+  }
   
   body <- list(token = rcon$token, 
                content = 'formEventMapping', 
