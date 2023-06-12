@@ -1,3 +1,41 @@
+## 2.7.1
+
+Version bump for CRAN publication
+
+
+## Changes in Version 2.7.0
+
+* The new function exportRecordsTyped is now available as a replacement for the existing exportRecords. It is a breaking change in interface--but provides
+far better stability in calling--full inversion of control over casting, retries through the connection object, and a clear error report as part of the final dataframe. Please take a moment to read the documentation on exportRecordsTyped and start moving over to using it over exportRecords.
+* bundle argument has been removed from all API methods. (It is no longer needed, thanks to caching). Backward compatibility is unaffected.
+* Introduces the offlineConnection function, which creates the redcapOfflineConnection object. This connection object can be built using either data frames structured like those received from the API methods, or the CSV files downloaded from the REDCap UI. The object function in the same way as an API connection with caching. Meta data can be retrieved via rcon$metadata(), etc..
+* added castForImport. Recasts a `data.frame` back into the expected text values.
+* added exportReportsTyped. Similar to exportRecordsTyped. * Helper function exportBulkRecords for bulk calls to exportRecordsTyped.
+
+
+## Changes in Version 2.6.2
+
+* Added retry parameter to connection object. On timeouts and gateway failures it retries 5 times now by default.
+* Cleanup from emergency patches.
+
+## Changes in Version 2.6.1
+
+* Emergency fix. REDCap latest version has changed it's API calling syntax.
+* Fix to choice name parsing when only a single choice is specified.
+* Fix to importMethod validators when event=NULL
+
+## Changes in Version 2.6.0
+
+* A set of functions to deal with file import / export in REDCap
+  * exportFileRepositoryListing
+  * exportFromFileRepository
+  * exportFileRepository
+  * importToFileRepository
+  * deleteFromFileRepository
+  * createFileRepositoryFolder
+  * importFileRepository
+  * deleteFileRepository
+
 ## Changes in Version 2.5.0
 
 * IMPORTANT: The upcoming 3.0.0 release will be a breaking change for exportRecords. This is needed for full inversion of control to the user over type casting.

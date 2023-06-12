@@ -3,15 +3,37 @@
 \name{redcapConnection}
 \alias{redcapConnection}
 \alias{print.redcapApiConnection}
+\alias{offlineConnection}
+\alias{print.redcapOfflineConnection}
 \title{Connect to a REDCap Database}
 \usage{
 redcapConnection(
   url = getOption("redcap_api_url"),
   token,
-  config = httr::config()
+  config = httr::config(),
+  retries = 5,
+  retry_interval = 2^(seq_len(retries)),
+  retry_quietly = TRUE
 )
 
 \method{print}{redcapApiConnection}(x, ...)
+
+offlineConnection(
+  meta_data = NULL,
+  arms = NULL,
+  events = NULL,
+  instruments = NULL,
+  field_names = NULL,
+  mapping = NULL,
+  users = NULL,
+  version = NULL,
+  project_info = NULL,
+  file_repo = NULL,
+  repeat_instrument = NULL,
+  records = NULL
+)
+
+\method{print}{redcapOfflineConnection}(x, ...)
 }
 \arguments{
 \item{url}{URL for a REDCap database API.  Check your institution's REDCap 
@@ -26,9 +48,61 @@ certificates, ssl version, etc. For the majority of users, this does
 not need to be altered.  See Details for more about this argument's 
 purpose and the \code{redcapAPI} wiki for specifics on its use.}
 
+\item{retries}{\code{integerish(1)}. Sets the number of attempts to make to the
+API if a timeout error is encountered. Must be a positive value.}
+
+\item{retry_interval}{\code{numeric}. Sets the intervals (in seconds) at 
+which retries are attempted. By default, set at a \code{2^r} where 
+\code{r} is the \code{r}th retry (ie, 2, 4, 8, 16, ...). For fixed 
+intervals, provide a single value. Values will be recycled to match
+the number of retries.}
+
+\item{retry_quietly}{\code{logical(1)}. When \code{FALSE}, messages will 
+be shown giving the status of the API calls. Defaults to \code{TRUE}.}
+
 \item{x}{\code{redcapConnection} object to be printed}
 
 \item{...}{arguments to pass to other methods}
+
+\item{meta_data}{Either a \code{character} giving the file from which the 
+metadata can be read, or a \code{data.frame}.}
+
+\item{arms}{Either a \code{character} giving the file from which the 
+arms can be read, or a \code{data.frame}.}
+
+\item{events}{Either a \code{character} giving the file from which the 
+events can be read, or a \code{data.frame}.}
+
+\item{instruments}{Either a \code{character} giving the file from which the 
+instruments can be read, or a \code{data.frame}.}
+
+\item{field_names}{Either a \code{character} giving the file from which the 
+field names can be read, or a \code{data.frame}.}
+
+\item{mapping}{Either a \code{character} giving the file from which the 
+Event Instrument mappings can be read, or a \code{data.frame}.}
+
+\item{users}{Either a \code{character} giving the file from which the 
+User settings can be read, or a \code{data.frame}.}
+
+\item{version}{Either a \code{character} giving the file from which the 
+version can be read, or a \code{data.frame}.}
+
+\item{project_info}{Either a \code{character} giving the file from which the 
+Project Information can be read, or a \code{data.frame}.}
+
+\item{file_repo}{Either a \code{character} giving the file from which the 
+File Repository Listing can be read, or a \code{data.frame}.}
+
+\item{repeat_instrument}{Either a \code{character} giving the file from which the 
+Repeating Instruments and Events settings can be read, or a \code{data.frame}.
+Note: The REDCap GUI doesn't offer a download file of these settings 
+(at the time of this writing).}
+
+\item{records}{Either a \code{character} giving the file from which the 
+Records can be read, or a \code{data.frame}. This should be the raw 
+data as downloaded from the API, for instance. Using labelled or formatted
+data is likely to result in errors when passed to other functions.}
 }
 \description{
 Creates an object of class \code{redcapApiConnection} for 
@@ -36,11 +110,12 @@ using the REDCap API
 }
 \details{
 \code{redcapConnection} objects will retrieve and cache various forms of 
-project information. This can make metadata, arms, events, fieldnames, 
-arm-event mappings, users, version, and project information available
+project information. This can make metadata, arms, events, instruments, fieldnames, 
+arm-event mappings, users, version, project information, and fileRepository available
 directly from the \code{redcapConnection} object. Take note that 
 the retrieval of these objects uses the default values of the respective
-export functions. 
+export functions (excepting the file repository, 
+which uses \code{recursive = TRUE}). 
 
 For each of these objects, there are four methods that can be called from 
 the \code{redcapConnection} object: the get method (called via
@@ -50,6 +125,16 @@ the flush method (\code{rcon$flush_metadata}), which removes the cached value;
 and the refresh method (\code{rcon$refresh_metadata}), which replaces the 
 current value with a new call to the API. There is also a \code{flush_all}
 and \code{refresh_all} method.
+
+The \code{redcapConnection} object also stores the user preferences for 
+handling repeated attempts to call the API. In the event of a timeout 
+error or server unavailability, these settings allow a system pause before
+attempting another API call. In the event all of the retries fail, the 
+error message of the last attempt will be returned. These settings may 
+be altered at any time using the methods \code{rcon$set_retries(r)}, 
+\code{rcon$set_retry_interval(ri)}, and \code{rcon$set_retry_quietly(rq)}. 
+The argument to these functions have the same requirements as the 
+corresponding arguments to \code{redcapConnection}.
 
 For convenience, you may consider using 
 \code{options(redcap_api_url=[your URL here])} in your RProfile.

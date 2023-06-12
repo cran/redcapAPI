@@ -1,7 +1,7 @@
 Package: redcapAPI
 Type: Package
 Title: Interface to 'REDCap'
-Version: 2.5.0
+Version: 2.7.1
 Authors@R: c(
     person("Shawn", "Garbett", email = "shawn.garbett@vumc.org",
            comment = c(ORCID="0000-0003-4079-5621"),
@@ -13,7 +13,9 @@ Authors@R: c(
     person("Jeffrey", "Horner", role = "aut"),
     person("Will", "Gray", role = "ctb"),
     person("Jeremy", "Stephens", role = "ctb"), 
-    person("Marcus", "Lehr", role = "ctb", email = "marcus.j.lehr@gmail.com"))
+    person("Marcus", "Lehr", role = "ctb", email = "marcus.j.lehr@gmail.com"), 
+    person("Cole", "Beck", role = "ctb"),
+    person("Savannah", "Obregon", role = "ctb"))
 Maintainer: Shawn Garbett <shawn.garbett@vumc.org>
 Description: Access data stored in 'REDCap' databases using the Application
     Programming Interface (API).  'REDCap' (Research Electronic Data CAPture;
@@ -25,16 +27,17 @@ Description: Access data stored in 'REDCap' databases using the Application
     accessing data with options to prepare an analysis-ready data set
     consistent with the definitions in a database's data dictionary.
 License: GPL-2
-Depends: R (>= 3.0.0)
-Imports: checkmate, chron, httr, labelVector, lubridate
+Depends: R (>= 3.5.0)
+Imports: checkmate, chron, httr, labelVector, lubridate, keyring,
+        getPass, yaml
 LazyLoad: yes
-Suggests: testthat (>= 3.0.0), getPass, keyring, Hmisc
+Suggests: testthat (>= 3.0.0), Hmisc
 URL: https://github.com/vubiostat/redcapAPI,https://projectredcap.org
 BugReports: https://github.com/vubiostat/redcapAPI/issues
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 NeedsCompilation: yes
-Packaged: 2023-03-24 14:53:06 UTC; garbetsp
+Packaged: 2023-06-12 16:24:50 UTC; garbetsp
 Author: Shawn Garbett [cre, ctb] (<https://orcid.org/0000-0003-4079-5621>),
   Benjamin Nutter [ctb, aut],
   Stephen Lane [ctb],
@@ -42,6 +45,8 @@ Author: Shawn Garbett [cre, ctb] (<https://orcid.org/0000-0003-4079-5621>),
   Jeffrey Horner [aut],
   Will Gray [ctb],
   Jeremy Stephens [ctb],
-  Marcus Lehr [ctb]
+  Marcus Lehr [ctb],
+  Cole Beck [ctb],
+  Savannah Obregon [ctb]
 Repository: CRAN
-Date/Publication: 2023-03-24 15:30:02 UTC
+Date/Publication: 2023-06-12 17:40:02 UTC

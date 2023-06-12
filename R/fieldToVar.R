@@ -63,9 +63,8 @@ fieldToVar <- function(records,
   {
     # Establish basic info about field/record
     field_name <- recordnames[i]
-    field_base <- gsub(pattern     = "___.+$",
-                       replacement = "",
-                       x           = field_name)
+    field_base <- sub(REGEX_CHECKBOX_FIELD_NAME, #defined in constants.R 
+                      "\\1", field_name, perl = TRUE)
     field_text_type <- meta_data$text_validation_type_or_show_slider_number[meta_data$field_name == field_base]
     field_type <- meta_data$field_type[meta_data$field_name == field_base]
     
@@ -212,11 +211,10 @@ fieldToVar <- function(records,
       fields <- recordnames[grepl(sprintf("^%s", checkbox_fieldname), recordnames)]
       if(length(fields) > 0)
       {
-        # FIXME: Issue-38 when merged will provide this as a function
-        opts   <- strsplit(strsplit(checkbox_meta[i,'select_choices_or_calculations'],"\\s*\\|\\s*")[[1]],
-                           "\\s*,\\s*")
-        levels <- sapply(opts, function(x) x[1+labels])
-        # END FIXME
+        opts <- fieldChoiceMapping(checkbox_meta[i,'select_choices_or_calculations'], 
+                                   fields[i])
+        levels <- opts[, 1 + labels]
+
         opts <- as.data.frame(matrix(rep(seq_along(fields), nrow(records)), nrow=nrow(records), byrow=TRUE))
         checked <- records_raw[,fields] != '1'
         opts[which(checked,arr.ind=TRUE)] <- ""

@@ -22,7 +22,7 @@
 #' 
 #' @export
 
-fieldChoiceMapping <- function(object, ...){
+fieldChoiceMapping <- function(object,  field_name, ...){
   UseMethod("fieldChoiceMapping")
 }
 
@@ -30,6 +30,7 @@ fieldChoiceMapping <- function(object, ...){
 #' @export
 
 fieldChoiceMapping.character <- function(object, 
+                                         field_name,
                                          ...){
   coll <- checkmate::makeAssertCollection()
   
@@ -39,22 +40,38 @@ fieldChoiceMapping.character <- function(object,
   
   checkmate::reportAssertions(coll)
   
-  if (!(grepl(",", object) && grepl("[|]", object))){
-    coll$push("The field choice string does not appear to be formatted for choices.")
+  if (!(grepl(REGEX_MULT_CHOICE, # defined in constants.R 
+              object, perl = TRUE))){
+    coll$push(
+      sprintf("'%s' choice string does not appear to be formatted for choices.", 
+              field_name))
     checkmate::reportAssertions(coll)
   }
   
   mapping <- unlist(strsplit(object, "[|]"))
-  # split on only the first comma. This allows commas to remain in the field label.
-  mapping <- regmatches(mapping, 
-                        regexec("([^,]*),(.*)", 
-                                mapping, 
-                                perl=TRUE))
-  mapping <- do.call("rbind", mapping)
-  mapping <- trimws(mapping[, -1]) # the first column is the original string. 
+  #split on only the first comma. This allows commas to remain in the field label.
+  # if no commas the code is likely from a legacy project
+  if (!any(grepl(",", mapping))) {
+    matrix <- matrix(nrow = length(mapping), ncol = 2,
+                            dimnames = list(NULL, c("choice_value", "choice_label")))
 
-  colnames(mapping) <- c("choice_value", "choice_label")
-  mapping
+    matrix[, "choice_value"] <- trimws(mapping)
+    matrix[, "choice_label"] <- trimws(mapping)
+
+    mapping <- matrix
+    return(mapping)
+
+  } else {
+    mapping <- regmatches(mapping, 
+                          regexec("([^,]*),(.*)", 
+                                  mapping, 
+                                  perl=TRUE))
+    mapping <- do.call("rbind", mapping)
+    mapping <- trimws(mapping[, -1, drop=FALSE]) # the first column is the original string. 
+
+    colnames(mapping) <- c("choice_value", "choice_label")
+    return(mapping)
+  }
 }
 
 #' @rdname fieldChoiceMapping
@@ -85,7 +102,7 @@ fieldChoiceMapping.redcapApiConnection <- function(object,
   
   MetaData <- MetaData[MetaData$field_name == field_name, ]
   
-  if (!MetaData$field_type %in% c("checkbox", "dropown", "radio")){
+  if (!MetaData$field_type %in% c("checkbox", "dropdown", "radio")){
     coll$push(sprintf("'%s' is not a checkbox, dropdown, or radio field", 
                       field_name))
     checkmate::reportAssertions(coll)

@@ -4,28 +4,19 @@
 # instance is required that matches the intended test cases.
 #
 # This helper will pull the required values from a keyring
-# similar to how `rccola` works for securitiy purposes.
+# similar to how `rccola` works for security purposes.
 # This package cannot depend on `rccola` without creating 
 # a circular dependency so minimal code is copied locally
 # 
 # To duplicate our test database see: inst/extdata
 #
-# Create a keyring with
-# 
-#   options(keyring_backend=keyring::backend_file) # Because MACOS is so irritating
-#   keyring::keyring_create('TestRedcapAPI', 'YOURPASSWORDHERE')
-#   keyring::key_set_with_value('TestRedcapAPI', username='TestRedcapAPI', keyring='TestRedcapAPI', password='YOURAPIKEYHERE')
-# To remove invalid password/API_KEY
-#   keyring::key_delete('TestRedcapAPI', 'TestRedcapAPI', 'TestRedcapAPI')
-
+# Create a keyring: 
+# This will create a keyring "API_KEYs"
+# It will name it the service "redcapAPI"
+# It will ask to save an API_KEY in this ring (there can be multiple!)
+#   of the name "TestRedcapAPI"
 url <- "https://redcap.vanderbilt.edu/api/" # Our institutions REDCap instance
-if(!exists("password")){
-  password <- getPass::getPass("Enter Password for keyring 'testRedcapAPI'")
-}
 
-if(!exists("API_KEY")){
-  keyring::keyring_unlock('TestRedcapAPI', password)
-  API_KEY <- keyring::key_get('TestRedcapAPI', 'TestRedcapAPI', 'TestRedcapAPI')
-}
+unlockREDCap(c(rcon="TestRedcapAPI"), url=url, keyring='API_KEYs', envir=globalenv())
 
 library(checkmate) # for additional expect_* functions.

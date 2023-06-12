@@ -1,28 +1,5 @@
 context("missingSummary")
 
-rcon <- redcapConnection(url = url, 
-                         token = API_KEY)
-
-# Tests to perform
-# * return an error if rcon is not a redcapConnection object
-# * return an error if excludeMissingForms is not logical
-# * return an error if excludeMissingForms is not length 1.
-# * return an error if exportRecordsArgs is not a list. 
-# * return an error if exportRecordsArgs is not a named list.
-# * return an error if fixed_fields is not a character vector
-#
-# Needs to be able to identify missing values where
-# * missing value with no branching logic
-# * missing value with branching logic from one field (non-checkbox)
-# * missing value with branching logic from a checkbox field
-# * missing value with branching logic from two fields using an AND conjunction
-# * missing value with branching logic from two fields using an OR conjuction
-# * missing value with branching logic from two fields where one is a checkbox field
-# * missing value with branching logic from three fields using both AND and OR conjunctions
-# * missing value with branching logic from a field using an inequality
-# * missing values identified when excludeMissingForms = FALSE
-# Desired output when `excludeMissingForms = TRUE` ------------------
-
 DesiredOutput <- 
   structure(
     list(
@@ -35,6 +12,10 @@ DesiredOutput <-
                             "event_1_arm_1", "event_1_arm_1", "event_1_arm_1", "event_1_arm_1", 
                             "event_1_arm_1", "event_1_arm_1", "event_1_arm_1", "event_1_arm_1", 
                             "event_1_arm_1", "event_1_arm_1", "event_1_arm_1", "event_1_arm_1"),
+      redcap_repeat_instrument = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 
+                                   NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
+      redcap_repeat_instance = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 
+                                 NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
       n_missing = c(1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 5), 
       missing = c("no_prereq_number", "", "", "", "one_prereq_non_checkbox", "", "one_prereq_checkbox", 
                   "", "two_prereq_and", "", "two_prereq_or", "", "two_prereq_and_one_check", 
@@ -44,6 +25,22 @@ DesiredOutput <-
     row.names = c(NA, -20L), 
     class = "data.frame"
   )
+
+# Test functionality ------------------------------------------------
+
+test_that(
+  "Missing values are correctly identified around branching logic",
+  {
+    local_reproducible_output(width = 200)
+    expect_identical(
+      missingSummary(rcon,
+                     exportRecordsArgs = list(fields = "record_id", 
+                                              records = as.character(10:29), 
+                                              forms = "branching_logic")), 
+      DesiredOutput
+    )
+  }
+)
 
 # Test for argument validation --------------------------------------
 
@@ -120,18 +117,26 @@ test_that(
   }
 )
 
-# Test functionality ------------------------------------------------
-
 test_that(
-  "Missing values are correctly identified around branching logic",
+  "Validate error_handling, config, api_param", 
   {
     local_reproducible_output(width = 200)
-    expect_identical(
-      missingSummary(rcon,
-                     exportRecordsArgs = list(fields = "record_id", 
-                                              records = as.character(10:29), 
-                                              forms = "branching_logic")), 
-      DesiredOutput
-    )
+    expect_error(missingSummary(rcon, 
+                                error_handling = "not an option"), 
+                 "'error[_]handling': Must be element of set [{]'null','error'[}]")
+    
+    expect_error(missingSummary(rcon, 
+                                config = list(1)), 
+                 "'config': Must have names")
+    expect_error(missingSummary(rcon, 
+                                config = "not a list"), 
+                 "'config': Must be of type 'list'")
+    
+    expect_error(missingSummary(rcon, 
+                                api_param = list(1)), 
+                 "'api_param': Must have names")
+    expect_error(missingSummary(rcon, 
+                                api_param = "not a list"), 
+                 "'api_param': Must be of type 'list'")
   }
 )

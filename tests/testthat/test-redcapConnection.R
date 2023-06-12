@@ -1,19 +1,14 @@
 context("redcapConnection")
 
+API_KEY <- keyring::key_get('redcapAPI', 'TestRedcapAPI', 'API_KEYs')
+
 test_that("redcapApiConnection can be created",
-  expect_equal(
-    class(redcapConnection(url = url, token = API_KEY)),
-    "redcapApiConnection"
-  )
+          expect_class(
+            redcapConnection(url = url, token = API_KEY),
+            classes = c("redcapApiConnection", "redcapConnection")
+          )
 )
 
-test_that("redcapConnection throws an error if url is missing",
-  expect_error(redcapConnection(token = API_KEY))
-)
-
-test_that("redcapConnection throws an  error if token is missing",
-  expect_error(redcapConnection(url = url))
-)
 
 # Caching tests -----------------------------------------------------
 
@@ -155,4 +150,169 @@ test_that(
   }
 )
 
+test_that(
+  "caching of instruments", 
+  {
+    rcon$flush_all()
+    expect_false(rcon$has_instruments())
+    
+    rcon$instruments()
+    expect_true(rcon$has_instruments())
+    
+    rcon$flush_instruments()
+    expect_false(rcon$has_instruments())
+    
+    rcon$refresh_instruments()
+    expect_true(rcon$has_instruments())
+  }
+)
 
+test_that(
+  "caching of fileRepository", 
+  {
+    rcon$flush_all()
+    expect_false(rcon$has_fileRepository())
+    
+    rcon$fileRepository()
+    expect_true(rcon$has_fileRepository())
+    
+    rcon$flush_fileRepository()
+    expect_false(rcon$has_fileRepository())
+    
+    rcon$refresh_fileRepository()
+    expect_true(rcon$has_fileRepository())
+  }
+)
+
+test_that(
+  "caching of repeatInstrumentEvent", 
+  {
+    local_reproducible_output(width = 200)
+
+    rcon$flush_all()
+    expect_false(rcon$has_repeatInstrumentEvent())
+    
+    rcon$repeatInstrumentEvent()
+    expect_true(rcon$has_repeatInstrumentEvent())
+    
+    rcon$flush_repeatInstrumentEvent()
+    expect_false(rcon$has_repeatInstrumentEvent())
+    
+    rcon$refresh_repeatInstrumentEvent()
+    expect_true(rcon$has_repeatInstrumentEvent())
+  }
+)
+
+test_that(
+  "retrieve and set retries", 
+  {
+    expect_equal(rcon$retries(), 5)
+    expect_error(rcon$set_retries("3"))
+    
+    rcon$set_retries(4)
+    expect_equal(rcon$retries(), 4)
+    rcon$set_retries(5)
+  }
+)
+
+test_that(
+  "retrieve and set retry_interval", 
+  {
+    expect_equal(rcon$retry_interval(), 
+                 c(2^(1:5)))
+    
+    expect_error(rcon$set_retry_interval(-3))
+    
+    rcon$set_retry_interval(3)
+    expect_equal(rcon$retry_interval(), 
+                 rep(3, 5))
+    
+    rcon$set_retry_interval(2^(1:5))
+  }
+)
+
+test_that(
+  "retrieve and set retry_quietly", 
+  {
+    expect_true(rcon$retry_quietly())
+    
+    expect_error(rcon$set_retry_quietly("FALSE"))
+    
+    rcon$set_retry_quietly(FALSE)
+    expect_false(rcon$retry_quietly())
+    
+    rcon$set_retry_quietly(TRUE)
+  }
+)
+
+#####################################################################
+# Argument Validation 
+
+test_that(
+  "redcapConnection throws an error if url is missing",
+  {
+    local_reproducible_output(width = 200)
+    expect_error(redcapConnection(token = API_KEY))
+  }
+)
+
+test_that(
+  "redcapConnection throws an  error if token is missing",
+  {
+    local_reproducible_output(width = 200)
+    expect_error(redcapConnection(url = url))
+  }
+)
+
+test_that(
+  "return an error if retries is not integerish(1) > 0", 
+  {
+    local_reproducible_output(width = 200)
+    expect_error(redcapConnection(url = url, 
+                                  token = API_KEY, 
+                                  retries = "5"), 
+                 "Variable 'retries': Must be of type 'integerish'")
+    
+    expect_error(suppressWarnings(redcapConnection(url = url, 
+                                                   token = API_KEY, 
+                                                   retries = 1:5)), 
+                 "'retries': Must have length 1")
+    
+    expect_error(redcapConnection(url = url, 
+                                  token = API_KEY, 
+                                  retries = 0), 
+                 "Variable 'retries': Element 1 is not [>][=] 1")
+  }
+)
+
+test_that(
+  "return an error if retry_interval is not numeric >= 0", 
+  {
+    local_reproducible_output(width = 200)
+    expect_error(redcapConnection(url = url, 
+                                  token = API_KEY, 
+                                  retry_interval = "0"), 
+                 "'retry_interval': Must be of type 'numeric'")
+    
+    expect_error(redcapConnection(url = url, 
+                                  token = API_KEY, 
+                                  retry_interval = -1), 
+                 "'retry_interval': Element 1 is not [>][=] 0")
+  }
+)
+
+test_that(
+  "return an error if retry_quietly is not logical(1)", 
+  {
+    local_reproducible_output(width = 200)
+    expect_error(redcapConnection(url = url, 
+                                  token = API_KEY, 
+                                  retry_quietly = c(TRUE, FALSE)), 
+                 "'retry_quietly': Must have length 1")
+    
+    expect_error(redcapConnection(url = url, 
+                                  token = API_KEY, 
+                                  retry_quietly = "TRUE"), 
+                 "'retry_quietly': Must be of type 'logical'")
+  }
+)
