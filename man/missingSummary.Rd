@@ -45,8 +45,7 @@ contain no data and you would not want it in this report.}
 the identifying fields in the output summary. This always includes the record
 identifier (ie, the first field in the data dictionary). By default it 
 also includes any fields identified in \code{REDCAP_SYSTEM_FIELDS}, which
-are fields that REDCap adds to exports to identify arms, events, etc. 
-see \code{\link{constants}}.}
+are fields that REDCap adds to exports to identify arms, events, etc..}
 
 \item{exportRecordsArgs}{named \code{list} with arguments to pass to \code{exportRecords}. 
 This allows for testing specific forms, events, and/or records. Internally, any 
@@ -64,9 +63,9 @@ see \code{\link{redcap_error}}}
 body of the API call. This provides users to execute calls with options
 that may not otherwise be supported by \code{redcapAPI}.}
 
-\item{records}{\code{character(1)} A filename pointing to the raw records download from REDCap}
+\item{records}{\code{character(1)} A filename pointing to the raw records download from REDCap.}
 
-\item{meta_data}{\code{character(1)} A filename pointing to the data dictionary download from REDCap}
+\item{meta_data}{\code{character(1)} A filename pointing to the data dictionary download from REDCap.}
 }
 \description{
 Returns a data frame of subject events with missing values.
@@ -80,7 +79,10 @@ The intention of this function is to generate a list of subject
   and R expression.  When a field with branching logic passes the logical
   statement, it is evaluated with \code{is.na}, otherwise, it is set to 
   \code{FALSE} (non-missing, because there was never an opportunity to 
-  provide a value).
+  provide a value).  The utility of this function is limited to simple 
+  logic where all of the
+  data exist within the same row. Any complex statements using events 
+  will result in a failure. 
   
   Optionally, forms that are entirely missing can be determined to be 
   non-missing.  This is applicable when, for instance, a patient did not 

@@ -30,7 +30,8 @@ offlineConnection(
   project_info = NULL,
   file_repo = NULL,
   repeat_instrument = NULL,
-  records = NULL
+  records = NULL,
+  dags = NULL
 )
 
 \method{print}{redcapOfflineConnection}(x, ...)
@@ -103,6 +104,9 @@ Note: The REDCap GUI doesn't offer a download file of these settings
 Records can be read, or a \code{data.frame}. This should be the raw 
 data as downloaded from the API, for instance. Using labelled or formatted
 data is likely to result in errors when passed to other functions.}
+
+\item{dags}{Either a \code{character} giving the file from which the 
+Data Access Groups can be read, or a \code{data.frame}.}
 }
 \description{
 Creates an object of class \code{redcapApiConnection} for 
@@ -110,8 +114,9 @@ using the REDCap API
 }
 \details{
 \code{redcapConnection} objects will retrieve and cache various forms of 
-project information. This can make metadata, arms, events, instruments, fieldnames, 
-arm-event mappings, users, version, project information, and fileRepository available
+project information. This can make metadata, arms, dags, events, instruments, fieldnames, 
+arm-event mappings, users, version, project information, fileRepository,
+and repeating instruments available
 directly from the \code{redcapConnection} object. Take note that 
 the retrieval of these objects uses the default values of the respective
 export functions (excepting the file repository, 

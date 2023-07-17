@@ -53,6 +53,28 @@ test_that(
   }
 )
 
+test_that(
+  "Return custom error message when reset by peer (Issue 181)", 
+  {
+    response <- makeApiCall(rcon, 
+                            body = list(content = "arm", 
+                                        format = "csv", 
+                                        returnFormat = "csv"))
+    response$status_code <- 502
+    response$content <- charToRaw("Recv failure: Connection reset by peer")
+    
+    expect_error(redcap_error(response, "null"), 
+                 "A network error has occurred. This can happen when too much data is")
+  
+    
+    response$content <- charToRaw("Timeout was reached: [redcap.vanderbilt.edu] SSL connection timeout")
+    
+    expect_error(redcap_error(response, "null"), 
+                 "A network error has occurred. This can happen when too much data is")
+    
+  }
+)
+
 #####################################################################
 # Argument Validation
 

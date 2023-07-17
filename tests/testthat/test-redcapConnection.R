@@ -1,6 +1,17 @@
 context("redcapConnection")
 
-API_KEY <- keyring::key_get('redcapAPI', 'TestRedcapAPI', 'API_KEYs')
+# Look for a yaml config for automated environments
+config_file <- file.path("..", paste0(basename(getwd()),".yml"))
+API_KEY <-
+  if(file.exists(config_file))
+  {
+    config <- read_yaml(config_file)
+    config$redcapAPI$keys$TestRedcapAPI
+  } else 
+  {
+    keyring::key_get('redcapAPI', 'TestRedcapAPI', 'API_KEYs')
+  }
+
 
 test_that("redcapApiConnection can be created",
           expect_class(
@@ -200,6 +211,25 @@ test_that(
     
     rcon$refresh_repeatInstrumentEvent()
     expect_true(rcon$has_repeatInstrumentEvent())
+  }
+)
+
+test_that(
+  "caching of Data Access Groups", 
+  {
+    local_reproducible_output(width = 200)
+    
+    rcon$flush_all()
+    expect_false(rcon$has_dags())
+    
+    rcon$dags()
+    expect_true(rcon$has_dags())
+    
+    rcon$flush_dags()
+    expect_false(rcon$has_dags())
+    
+    rcon$refresh_dags()
+    expect_true(rcon$has_dags())
   }
 )
 

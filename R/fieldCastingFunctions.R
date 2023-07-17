@@ -46,6 +46,7 @@
 #' @param quiet Print no messages if triggered, Default=FALSE. 
 #' @param threshold numeric(1). The threshold of non-NA data to trigger casting.
 #' @param style character. One of "labelled" or "coded". Default is "labelled"
+#' @param drop_fields logical(1). Drop fields that were aggregated.
 #'   
 #' @details \code{recastRecords} is a post-processing function motivated 
 #'   initially by the need to switch between codes and labels in multiple 
@@ -391,7 +392,8 @@ guessDate <- function(data,
 
 mChoiceCast <- function(data, 
                         rcon, 
-                        style = "labelled")
+                        style = "labelled",
+                        drop_fields = TRUE)
 {
   ###################################################################
   # Check arguments
@@ -404,6 +406,9 @@ mChoiceCast <- function(data,
   checkmate::assert_class(x       = rcon,
                           classes = "redcapApiConnection",
                           add     = coll)
+  
+  checkmate::assert_logical(x     = drop_fields,
+                           len    = 1)
   
   style <- checkmate::matchArg(x = style, 
                                choices = c("coded", "labelled"), 
@@ -431,6 +436,20 @@ mChoiceCast <- function(data,
                   records_raw = Raw, 
                   checkbox_fieldname = i, 
                   style = style)
+  
+  # get the suffixed field names
+  fields_to_drop <- character()
+  for (i in checkbox_fields) {
+    fields <- FieldNames$export_field_name[FieldNames$original_field_name %in% i]
+    fields_to_drop <- c(fields_to_drop, fields)
+  }
+  
+  # if drop_fields is FALSE, keep suffixed field, else if drop_fields is TRUE (default) remove suffixed field
+  if (drop_fields == FALSE) {
+    data
+  } else {
+    data <- data[, !names(data) %in% fields_to_drop]
+  }
   
   data
 }
@@ -554,6 +573,26 @@ mChoiceCast <- function(data,
   field_types <- gsub("_(dmy|mdy|ymd)$", "_", field_types)
   field_types[is.na(field_types)] <- "text"
   
+  # Designate events and DAGs as system fields
+  which_system_field <- which(field_bases %in% c("redcap_event_name", 
+                                                 "redcap_repeat_instrument",
+                                                 "redcap_data_access_group"))
+  field_types[which_system_field] <- rep("system", length(which_system_field))
+  
+  # Set system fields to text if the data sets needed to make the code books
+  # is not present. (this is more common with offline connections)
+  if (is.null(rcon$events())){
+    field_types[field_bases %in% "redcap_event_name"] <- 
+      rep("text", 
+          sum(field_bases %in% "redcap_event_name"))
+  }
+  
+  if (is.null(rcon$events())){
+    field_types[field_bases %in% "redcap_data_access_group"] <- 
+      rep("text", 
+          sum(field_bases %in% "redcap_data_access_group"))
+  }
+  
   field_types
 }
 
@@ -570,6 +609,14 @@ mChoiceCast <- function(data,
   codebook[field_types == "form_complete"] <- "0, Incomplete | 1, Unverified | 2, Complete"
   codebook[field_types == "yesno"] <- "0, No | 1, Yes"
   
+  system_field <- which(field_names %in% c("redcap_event_name", 
+                                           "redcap_data_access_group", 
+                                           "redcap_repeat_instrument"))
+  codebook[system_field] <- vapply(field_names[system_field], 
+                                   FUN = .castRecords_getSystemCoding, 
+                                   FUN.VALUE = character(1), 
+                                   rcon = rcon)
+  
   codings <- vector("list", length = length(codebook))
   
   for (i in seq_along(codings)){
@@ -585,6 +632,61 @@ mChoiceCast <- function(data,
       }
   }
   codings
+}
+
+# This function gets the codings for system fields so that they can be
+# cast to raw or label. These apply to 
+# redcap_event_name (requires both rcon$arms and rcon$events)
+# redcap_repeat_instrument (requires rcon$instruments)
+# redcap_data_access_group (requires rcon$dags)
+.castRecords_getSystemCoding <- function(field_name, 
+                                         rcon){
+  if (field_name == "redcap_event_name"){
+    Event <- rcon$events()
+    Arm <- rcon$arms()
+    
+    if (!is.null(Event) && !is.null(Arm)){
+      EventArm <- merge(Event, 
+                        Arm, 
+                        by = "arm_num", 
+                        all.x = TRUE)
+      
+      EventArm$data_label <- sprintf("%s (Arm %s: %s)", 
+                                     EventArm$event_name, 
+                                     EventArm$arm_num, 
+                                     EventArm$name)
+      
+      Mapping <- data.frame(code = EventArm$unique_event_name, 
+                            label = EventArm$data_label, 
+                            stringsAsFactors = FALSE)
+    } else {
+      return(NA_character_)
+    }
+    
+  } else if (field_name == "redcap_data_access_group") {
+    Dag <- rcon$dags()
+    
+    if (is.null(Dag)) return(NA_character_)
+    
+    Mapping <- data.frame(code = Dag$unique_group_name, 
+                          label = Dag$data_access_group_name, 
+                          stringsAsFactors = FALSE)
+  } else if (field_name == "redcap_repeat_instrument"){
+    Instrument <- rcon$instruments()
+    Mapping <- data.frame(code = Instrument$instrument_name, 
+                          label = Instrument$instrument_label, 
+                          stringsAsFactors = FALSE)
+  } else {
+    return(NA_character_)
+  }
+  
+  
+  coding <- sprintf("%s, %s", 
+                    Mapping$code, 
+                    Mapping$label)
+  coding <- paste0(coding, collapse = " | ")
+  
+  coding
 }
 
 # .exportRecords_getNas ---------------------------------------------

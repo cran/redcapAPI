@@ -59,7 +59,10 @@
 #' @param cast A named \code{list} of user specified class casting functions. The
 #'   same named keys are supported as the na argument. The function will be 
 #'   provided the variables (x, field_name, coding). The function must return a
-#'   vector of logical matching the input length. See \code{\link{fieldValidationAndCasting}}
+#'   vector of logical matching the input length. See \code{\link{fieldValidationAndCasting}}.
+#'   The field type \code{system} may also be used to determine how the fields
+#'   \code{redcap_event_name}, \code{redcap_repeat_instrument}, and 
+#'   \code{redcap_data_access_group} are cast.
 #' @param assignment A named \code{list} of functions. These functions are provided, field_name,
 #'   label, description and field_type and return a list of attributes to assign
 #'   to the column. Defaults to creating a label attribute from the stripped
@@ -75,6 +78,9 @@
 #' @param batch_size \code{integerish(1)} (or \code{NULL}). If length \code{NULL},
 #'   all records are pulled. Otherwise, the records all pulled in batches of this size.
 #' @param ... Consumes any additional parameters passed. Not used.
+#' @param error_handling An option for how to handle errors returned by the API.
+#'   see \code{\link{redcap_error}}
+#'   
 #' @details
 #' 
 #' In all calls, the project's ID field will be included--there is no option
@@ -223,27 +229,28 @@ exportRecordsTyped.redcapApiConnection <-
     rcon,  
     
     # Limiters
-    fields        = NULL,
-    drop_fields   = NULL,
-    forms         = NULL,
-    records       = NULL,
-    events        = NULL,
-    survey        = TRUE,
-    dag           = TRUE,
-    date_begin    = NULL,
-    date_end      = NULL,
+    fields         = NULL,
+    drop_fields    = NULL,
+    forms          = NULL,
+    records        = NULL,
+    events         = NULL,
+    survey         = TRUE,
+    dag            = TRUE,
+    date_begin     = NULL,
+    date_end       = NULL,
     
     # Type Casting Default Overrides Function Lists
-    na            = list(),
-    validation    = list(),
-    cast          = list(),
-    assignment    = list(label=stripHTMLandUnicode,
-                         units=unitsFieldAnnotation),
-    ..., 
-    config        = list(),
-    api_param     = list(),
-    csv_delimiter = ",",
-    batch_size    = NULL)
+    na             = list(),
+    validation     = list(),
+    cast           = list(),
+    assignment     = list(label=stripHTMLandUnicode,
+                          units=unitsFieldAnnotation),
+    ...,
+    config         = list(),
+    api_param      = list(),
+    csv_delimiter  = ",",
+    batch_size     = NULL, 
+    error_handling = getOption("redcap_error_handling"))
 {
   if (is.numeric(records)) records <- as.character(records)
 
@@ -371,12 +378,13 @@ exportRecordsTyped.redcapApiConnection <-
   Raw <- 
     if (length(batch_size) == 0)
     {
-      .exportRecordsTyped_Unbatched( rcon          = rcon, 
-                                     body          = body, 
-                                     records       = records, 
-                                     config        = config, 
-                                     api_param     = api_param, 
-                                     csv_delimiter = csv_delimiter)
+      .exportRecordsTyped_Unbatched( rcon           = rcon, 
+                                     body           = body, 
+                                     records        = records, 
+                                     config         = config, 
+                                     api_param      = api_param, 
+                                     csv_delimiter  = csv_delimiter, 
+                                     error_handling = error_handling)
     } else
     {
       .exportRecordsTyped_Batched(  rcon           = rcon, 
@@ -385,7 +393,8 @@ exportRecordsTyped.redcapApiConnection <-
                                     config         = config, 
                                     api_param      = api_param, 
                                     csv_delimiter  = csv_delimiter, 
-                                    batch_size     = batch_size)
+                                    batch_size     = batch_size, 
+                                    error_handling = error_handling)
     }
   
   if (identical(Raw, data.frame())){
@@ -795,13 +804,19 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                                            records, 
                                            config, 
                                            api_param, 
-                                           csv_delimiter)
+                                           csv_delimiter, 
+                                           error_handling)
 {
   response <- makeApiCall(rcon, 
                           body = c(body, 
                                    api_param, 
                                    vectorToApiBodyList(records, "records")), 
                           config = config)
+  
+  if (response$status_code != 200){
+    redcap_error(response, 
+                 error_handling = error_handling)
+  } 
   
   if (trimws(as.character(response)) == ""){
     message("No data found in the project.")
@@ -817,12 +832,13 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
 
 # .exportRecordsTyped_Batched ---------------------------------------
 .exportRecordsTyped_Batched <- function( rcon, 
-                                            body, 
-                                            records, 
-                                            config, 
-                                            api_param, 
-                                            csv_delimiter, 
-                                            batch_size)
+                                         body, 
+                                         records, 
+                                         config, 
+                                         api_param, 
+                                         csv_delimiter, 
+                                         batch_size, 
+                                         error_handling)
 {
   # If records were not provided, get all the record IDs from the project
   if (length(records) == 0)
@@ -834,6 +850,11 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                                                  outputFormat = "csv"), 
                                             vectorToApiBodyList(target_field, 
                                                                 "fields")))
+    
+    if (record_response$status_code != 200){
+      redcap_error(record_response, 
+                   error_handling = error_handling)
+    }
     
     if (trimws(as.character(record_response)) == ""){
       message("No data found in the project.")
@@ -875,7 +896,7 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
 
 
 #' @name exportBulkRecords
-#' @title A helper function to export multiple recordss and forms using
+#' @title A helper function to export multiple records and forms using
 #' a single call.
 #' @description Exports records from multiple REDCap Databases using
 #' multiple calls to \code{\link{exportRecordsTyped}}
@@ -883,10 +904,14 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
 #' @param rcon A named list of REDCap connection object as created by \code{\link{redcapConnection}}.
 #' @param forms A named list that is a subset of rcon's names. A specified \code{rcon}
 #'              will provide a list of forms for repeated calls to \code{exportRecordsType}.
+#'              If a connection reference is missing it will default to all forms. To override
+#'              this default specify a connection's forms with NA to just get all
+#'              data. 
 #' @param envir A environment to write the resulting Records in as variables
 #'   given by their name in rcon or if from a form their rcon named pasted to 
 #'   their form name joined by \code{sep}. If not specified the function
-#'   will return a named list with the results.
+#'   will return a named list with the results. Will accept a number of the
+#'   environment.
 #' @param sep A character string to use when joining the rcon name to the form name
 #' for storing variables. 
 #' @param post A function that will run on all returned sets of Records. 
@@ -929,6 +954,8 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
 #' @export
 exportBulkRecords <- function(rcon, forms=NULL, envir=NULL, sep="_", post=NULL, ...)
 {
+  if(is.numeric(envir)) envir <- as.environment(envir)
+  
   coll <- checkmate::makeAssertCollection()
   
   checkmate::assert_list(     x       = rcon,
@@ -937,8 +964,8 @@ exportBulkRecords <- function(rcon, forms=NULL, envir=NULL, sep="_", post=NULL, 
                               names   = "named",
                               add     = coll)
   
-  checkmate::assert_list(     x       = forms,
-                              types   = "character",
+  checkmate::assert_list(     x       = forms,   # First, just verify that it is actually a list that was passed. 
+                              names   = "named",
                               null.ok = TRUE,
                               add     = coll)
   
@@ -956,47 +983,52 @@ exportBulkRecords <- function(rcon, forms=NULL, envir=NULL, sep="_", post=NULL, 
                               null.ok = TRUE,
                               add     = coll)
   
+  checkmate::reportAssertions(coll)
+  
   if(!is.null(forms))
+  {
+    forms[is.na(forms)] <- NA_character_ 
+    
     checkmate::assert_subset( x       = names(forms),
                               choices = names(rcon),
                               add     = coll)
+    
+    checkmate::assert_list( x       = forms,
+                            types   = c("character"),
+                            add     = coll)
+  }
   
   checkmate::reportAssertions(coll)
   
-  # Use a list to return unless envir specified
-  dest <- if(is.null(envir)) list() else envir
+  dest <- list()
+  
+  if(is.null(forms)) forms <- list()
   
   # For each dataset requested
   for(i in names(rcon))
   {
-    if(is.null(forms))
+    conn  <- rcon[[i]]
+    f     <- forms[[i]]
+    
+    lform <- if(is.null(f))                 conn$instruments()$instrument_name else
+             if(length(f) == 1 && is.na(f)) NULL                               else
+                                            forms[[i]]
+    lform <- lform[!is.na(lform)] # Just in case NA's are spread about
+    
+    if(is.null(lform))
     {
-      data <- exportRecordsTyped(rcon[[i]], ...)
-      if(!is.null(post)) data <- post(data, rcon[[i]])
-      if(is.environment(dest))
-      {
-        base::assign(i, data, envir=dest)
-      } else
-      {
-        dest[[i]] <-data
-      }
+      dest[[i]] <- exportRecordsTyped(conn, ...)
+      if(!is.null(post)) dest[[i]] <- post(dest[[i]], conn)
     } else
     {
-      for(j in forms[[i]])
+      for(j in lform)
       {
         name <- paste0(i, sep, j)
-        data <- exportRecordsTyped(rcon[[i]], forms=j, ...)
-        if(!is.null(post)) data <- post(data, rcon[[i]])
-        if(is.environment(dest))
-        {
-          base::assign(name, data, envir=dest)
-        } else
-        {
-          dest[[name]] <- data
-        }
+        dest[[name]] <- exportRecordsTyped(conn, forms=j, ...)
+        if(!is.null(post)) dest[[name]] <- post(dest[[name]], conn)
       }
     }
   }
   
-  return(if(is.environment(dest)) invisible() else dest)
+  if(is.null(envir)) dest else list2env(dest, envir=envir)
 }

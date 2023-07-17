@@ -63,7 +63,7 @@ test_that(
     # Run the function in post processing
     this_split <- splitForms(Records, 
                              rcon, 
-                             post = as.matrix)
+                             post = function(Recs, Rcon) as.matrix(Recs))
     expect_true(all(vapply(this_split, is.matrix, logical(1))))
     
     # Add to the desired environment
@@ -81,9 +81,9 @@ test_that(
 test_that(
   "Carry over invalid attributes, remove rows of all missing data", 
   {
-    TheseRecords <- exportRecordsTyped(rcon, 
+    TheseRecords <- suppressWarnings(exportRecordsTyped(rcon, 
                                        fields = c("date_mdy", "dropdown_test"), 
-                                       validation = list(dropdown = function(x, field_name, coding) x != "1"))
+                                       validation = list(dropdown = function(x, field_name, coding) x != "1")))
     
     Split <- splitForms(TheseRecords, 
                         rcon)
@@ -91,5 +91,18 @@ test_that(
     expect_data_frame(attr(Split$data_import_export, "invalid"))
     
     expect_true(all(!is.na(Split$data_import_export$dropdown_test)))
+  }
+)
+
+test_that(
+  "Split forms post process works",
+  {
+    this_split <-
+      splitForms(
+        Records, 
+        rcon,
+        post=function(Records, rcon) {assign("b", 2, pos=1)})
+    expect_equal(b, 2)
+    rm(b, pos=1)
   }
 )

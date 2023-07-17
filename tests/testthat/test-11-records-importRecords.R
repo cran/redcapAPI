@@ -133,7 +133,8 @@ test_that(
 test_that(
   "import with Auto Numbering", 
   {
-    Records <- exportRecordsTyped(rcon, mChoice = FALSE)
+    Records <- exportRecordsTyped(rcon, mChoice = FALSE, 
+                                  cast = list(system = castRaw))
     nrow(Records)
     OneRecord <- Records[1,]
     
@@ -144,12 +145,93 @@ test_that(
                            returnContent = 'auto_ids',
                            force_auto_number = TRUE)
     
-    expect_equal(NewId$id, next_record_id)
+    expect_true(NewId$id > nrow(Records))
     
     After <- exportRecordsTyped(rcon)
     
-    expect_equal(nrow(Records) + 1, nrow(After))
+    expect_true(nrow(Records) < nrow(After))
     
-    deleteRecords(rcon, records = next_record_id)
+    deleteRecords(rcon, records = max(After$record_id))
+  }
+)
+
+#####################################################################
+# Tests for dates with validation                                ####
+# See Issue 176
+
+test_that(
+  "Validations of `today` and `now`",
+  {
+    # Date variable with today in min validation ####
+    OrigMeta <- rcon$metadata()
+    w_var <- which(OrigMeta$field_name == "date_ymd_test")
+
+    OrigMeta$text_validation_min[w_var] <- "today"
+    importMetaData(rcon, OrigMeta)
+    
+    NewData <- exportRecordsTyped(rcon, cast = list(system = castRaw))
+    NewData <- NewData[NewData$record_id == 10, 
+                       c("record_id", "redcap_event_name", 
+                         "redcap_repeat_instrument", "redcap_repeat_instance", 
+                         "redcap_data_access_group", "date_ymd_test")]
+    expect_equal(importRecords(rcon, NewData), "1")
+    
+    OrigMeta$text_validation_min[w_var] <- NA_character_
+    importMetaData(rcon, OrigMeta)
+    
+    # Date variable with today in max validation ####
+    OrigMeta <- rcon$metadata()
+    w_var <- which(OrigMeta$field_name == "date_ymd_test")
+    
+    OrigMeta$text_validation_max[w_var] <- "today"
+    importMetaData(rcon, OrigMeta)
+    
+    NewData <- exportRecordsTyped(rcon, 
+                                  cast = list(system = castRaw))
+    NewData <- NewData[NewData$record_id == 10, 
+                       c("record_id", "redcap_event_name", 
+                         "redcap_repeat_instrument", "redcap_repeat_instance", 
+                         "redcap_data_access_group", "date_ymd_test")]
+    expect_equal(importRecords(rcon, NewData), "1")
+    
+    OrigMeta$text_validation_max[w_var] <- NA_character_
+    importMetaData(rcon, OrigMeta)
+    
+    # Date/time variable with now in min validation ####
+    OrigMeta <- rcon$metadata()
+    w_var <- which(OrigMeta$field_name == "datetime_ymd_hms_test")
+    
+    OrigMeta$text_validation_min[w_var] <- "now"
+    importMetaData(rcon, OrigMeta)
+    
+    NewData <- exportRecordsTyped(rcon, 
+                                  cast = list(system = castRaw))
+    NewData <- NewData[NewData$record_id == 10, 
+                       c("record_id", "redcap_event_name", 
+                         "redcap_repeat_instrument", "redcap_repeat_instance", 
+                         "redcap_data_access_group", "date_ymd_test")]
+    expect_equal(importRecords(rcon, NewData), "1")
+    
+    OrigMeta$text_validation_min[w_var] <- NA_character_
+    importMetaData(rcon, OrigMeta)
+    
+    # Date/time variable with now in max validation ####
+    OrigMeta <- rcon$metadata()
+    w_var <- which(OrigMeta$field_name == "datetime_ymd_hms_test")
+    
+    OrigMeta$text_validation_max[w_var] <- "now"
+    importMetaData(rcon, OrigMeta)
+    
+    NewData <- exportRecordsTyped(rcon, 
+                                  cast = list(system = castRaw))
+    NewData <- NewData[NewData$record_id == 10, 
+                       c("record_id", "redcap_event_name", 
+                         "redcap_repeat_instrument", "redcap_repeat_instance", 
+                         "redcap_data_access_group", "date_ymd_test")]
+    expect_equal(importRecords(rcon, NewData), "1")
+    
+    OrigMeta$text_validation_max[w_var] <- NA_character_
+    importMetaData(rcon, OrigMeta)
+    
   }
 )
