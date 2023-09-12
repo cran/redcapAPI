@@ -1,7 +1,7 @@
 
 
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.11826.png)](http://dx.doi.org/10.5281/zenodo.11826)
-![](http://cranlogs.r-pkg.org/badges/grand-total/redcapAPI)
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.11826.png)](https://dx.doi.org/10.5281/zenodo.11826)
+![](https://cranlogs.r-pkg.org/badges/grand-total/redcapAPI)
 
 redcapAPI
 ======
@@ -46,13 +46,13 @@ These two calls will handle most analysis requests. To truly understand all thes
 The research community owes a big thanks to [Benjamin Nutter](https://github.com/nutterb/redcapAPI)
 for his years of service keeping this package current.
 
-The package `redcapAPI` is an R interface to REDCap (http://www.project-redcap.org/), originally created by [Jeffrey Horner](https://github.com/jeffreyhorner).
+The package `redcapAPI` is an R interface to REDCap (https://www.projectredcap.org/), originally created by [Jeffrey Horner](https://github.com/jeffreyhorner).
 
 Please read the documentation on your institutions REDCap installation.
 
 Issues may be reported at [Issues](https://github.com/vubiostat/redcapAPI/issues)
 
-This package was developed under REDCap Version 13.4.3. Institutions can be a little behind on updating REDCap and so some features of the API may not always work.
+This package was developed under REDCap Version 13.8.2. Institutions can be a little behind on updating REDCap and so some features of the API may not always work.
 
 ### Coding Style Guideline Note
 

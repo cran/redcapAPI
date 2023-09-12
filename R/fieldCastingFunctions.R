@@ -3,93 +3,112 @@
 #' 
 #' @description The functions provided here allow for recasting fields 
 #'   after records have been exported. They generally have a similar 
-#'   interface to the casting strategy of \code{\link{exportRecordsTyped}}, 
+#'   interface to the casting strategy of [exportRecordsTyped()], 
 #'   though they may not each offer all the same options. 
 #'   
-#' @param data \code{data.frame} with the data fields to be recoded. 
-#' @param rcon \code{recapConnection} object.
-#' @param fields \code{character/logical/integerish}. A vector for identifying
-#'   which fields to recode. When \code{logical}, the length must match 
-#'   the number of columns in \code{data} (i.e., recycling not permitted).
+#' @inheritParams common-rcon-arg
+#' @inheritParams common-cast-args
+#' @param data `data.frame` with the data fields to be recoded. 
+#' @param fields `character/logical/integerish`. A vector for identifying
+#'   which fields to recode. When `logical`, the length must match 
+#'   the number of columns in `data` (i.e., recycling not permitted).
 #'   A message is printed if any of the indicated fields are not a 
 #'   multiple choice field; no action will be taken on such fields.
 #'   For this function, yes/no and true/false fields are considered 
-#'   multiple choice fields. Fields of class \code{mChoice} are quietly skipped.
-#' @param na  A named \code{list} of user specified functions to determine if the
-#'   data is NA. This is useful when data is loaded that has coding for NA, e.g.
-#'   -5 is NA. Keys must correspond to a truncated REDCap field type, i.e.
-#'   {date_, datetime_, datetime_seconds_, time_mm_ss, time_hh_mm_ss, time, float,
-#'   number, calc, int, integer, select, radio, dropdown, yesno, truefalse,
-#'   checkbox, form_complete, sql}. The function will be provided the variables
-#'   (x, field_name, coding). The function must return a vector of logicals
-#'   matching the input. It defaults to \code{\link{isNAorBlank}} for all
-#'   entries.
-#' @param validation A named \code{list} of user specified validation functions. The 
-#'   same named keys are supported as the na argument. The function will be 
-#'   provided the variables (x, field_name, coding). The function must return a
-#'   vector of logical matching the input length. Helper functions to construct
-#'   these are \code{\link{valRx}} and \code{\link{valChoice}}. Only fields that
-#'   are not identified as NA will be passed to validation functions. 
-#' @param cast A named \code{list} of user specified class casting functions. 
-#'   Keys must correspond to a truncated REDCap field type, i.e.
-#'   {date_, datetime_, datetime_seconds_, time_mm_ss, time_hh_mm_ss, time, float,
-#'   number, calc, int, integer, select, radio, dropdown, yesno, truefalse,
-#'   checkbox, form_complete, sql}. The function will be 
-#'   provided the variables (x, field_name, coding). 
-#'   See \code{\link{fieldValidationAndCasting}}
-#' @param suffix \code{character(1)}. An optional suffix to provide if 
+#'   multiple choice fields. Fields of class `mChoice` are quietly skipped.
+#' @param drop_fields `character` or `NULL`. A vector of field names to remove from 
+#'   the data. 
+#' @param suffix `character(1)`. An optional suffix to provide if 
 #'   the recoded variables should be returned as new columns. For example, 
-#'   if recoding a field \code{forklift_brand} and \code{suffix = "_labelled"}, 
+#'   if recoding a field `forklift_brand` and `suffix = "_labeled"`, 
 #'   the result will have one column with the coded values 
-#'   (\code{forklift_brand}) and one column with the labelled values 
-#'   (\code{forklift_brand_labelled}).
+#'   (`forklift_brand`) and one column with the labeled values 
+#'   (`forklift_brand_labeled`).
 #' @param quiet Print no messages if triggered, Default=FALSE. 
 #' @param threshold numeric(1). The threshold of non-NA data to trigger casting.
 #' @param style character. One of "labelled" or "coded". Default is "labelled"
-#' @param drop_fields logical(1). Drop fields that were aggregated.
 #'   
-#' @details \code{recastRecords} is a post-processing function motivated 
+#' @details `recastRecords` is a post-processing function motivated 
 #'   initially by the need to switch between codes and labels in multiple 
 #'   choice fields. Field types for which no casting function is specified will
 #'   be returned with no changes. It will not attempt to validate the content
-#'   of fields; fields that can not be successfully cast will be quietly 
+#'   of fields; fields that cannot be successfully cast will be quietly 
 #'   returned as missing values. 
 #'   
-#'   \code{castForImport} is written with defaults that will return data 
-#'   in a format ready to be imported to a project via \code{importRecords}. 
+#'   `castForImport` is written with defaults that will return data 
+#'   in a format ready to be imported to a project via `importRecords`. 
 #'   All fields are returned as character vectors. If any values fail to
-#'   validation check, are report is returned as an attribute named \code{invalid}. 
-#'   These are then set to \code{NA}, which will be imported as blanks through
+#'   validation check, are report is returned as an attribute named `invalid`. 
+#'   This attribute may be retrieved using [reviewInvalidRecords()].
+#'   These are then set to `NA`, which will be imported as blanks through
 #'   the API. 
 #'   
-#'   \code{guessCast} is a helper function to make a guess at casting uncast 
+#'   `guessCast` is a helper function to make a guess at casting uncast 
 #'   columns. It will do a type cast if a validation is met above
 #'   a threshold ratio of non-NA records. It modifies the existing
-#'   \code{invalid} attribute to reflect the cast. \code{guessDate} is 
-#'   a special cast of \code{guessCast} that has defaults set for casting
+#'   `invalid` attribute to reflect the cast. 
+#'   This attribute may be retrieved using [reviewInvalidRecords()].
+#'   `guessDate` is a special cast of `guessCast` that has defaults set for casting
 #'   a date field.
 #'   
-#'   \code{mChoiceCast} is a helper function that adds the \code{Hmisc::mChoice} 
+#'   `mChoiceCast` is a helper function that adds the `Hmisc::mChoice` 
 #'   multiple choice class. It adds a column for a multiple choice checkbox 
-#'   that is cast to the \code{Hmisc::mChoice} class. Requires \code{Hmisc} 
+#'   that is cast to the `Hmisc::mChoice` class. Requires `Hmisc` 
 #'   to be loaded.
+#'   
+#' @inherit isZeroCodedCheckField sections
+#'   
+#' @seealso 
+#' ## Exporting records
+#' 
+#' [exportRecordsTyped()], \cr
+#' [exportReportsTyped()], \cr
+#' [fieldValidationAndCasting()], \cr
+#' [reviewInvalidRecords()]
+#' 
+#' ## Other Post Processing Functions
+#' 
+#' [splitForms()], \cr
+#' [widerRepeated()]
 #'   
 #'   
 #' @examples
 #' \dontrun{
+#' # Using recastRecords after export
+#' Recs <- 
+#'   exportRecordsTyped(rcon) |>
+#'   recastRecords(rcon, 
+#'                 fields = "dropdown_test",
+#'                 cast = list(dropdown = castCode))
+#'                 
+#'                 
+#' # Using castForImport
+#' castForImport(Records, 
+#'               rcon)
+#'               
+#'               
+#' # Using castForImport to recast zero-coded checkbox values
+#' castForImport(Records, 
+#'               rcon, 
+#'               cast = list(checkbox = castCheckForImport(c("0", "Unchecked"))))
+#' 
+#' 
 #' # Using guessCast
-#' recs <- exportRecordsTyped(rcon, 
+#' exportRecordsTyped(rcon, 
 #'                            cast = raw_cast) |> 
 #'   guessCast(rcon, 
 #'             validation=valRx("^[0-9]{1,4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$"), 
 #'             cast=as.Date,
 #'             threshold=0.6)
+#'             
+#'             
+#' # Using mChoiceCast
+#' exportRecordsTyped(rcon) |> 
+#'   mChoiceCast(rcon)
 #' 
-#' # Using mChoiceCast            
-#' recs <- exportRecordsTyped(rcon) |> mChoiceCast(rcon)
 #' }
-
-#' @rdname fieldCastingFunctions
+#' 
+#' 
 #' @export
 
 recastRecords <- function(data, 
@@ -165,6 +184,9 @@ recastRecords <- function(data,
   
   ###################################################################
   # Derive field information
+  # Issue a warning if any of the fields are zero-coded check fields (See Issue 199)
+  warnZeroCodedFieldPresent(fields)
+  
   MetaData <- rcon$metadata()
   
   field_names <- fields
@@ -467,6 +489,9 @@ mChoiceCast <- function(data,
                          default_cast     = .default_cast, 
                          default_validate = .default_validate){
   
+  # Issue a warning if any of the fields are zero-coded check fields (See Issue 199)
+  warnZeroCodedFieldPresent(names(Raw))
+  
   ###################################################################
   # Process meta data for useful information                     ####
   
@@ -475,6 +500,7 @@ mChoiceCast <- function(data,
   MetaData <- rcon$metadata()
   
   field_names <- names(Raw) 
+  
   field_bases <- sub(REGEX_CHECKBOX_FIELD_NAME, #defined in constants.R 
                      "\\1", field_names, perl = TRUE)
   field_text_types <- MetaData$text_validation_type_or_show_slider_number[match(field_bases, MetaData$field_name)]
@@ -728,7 +754,7 @@ mChoiceCast <- function(data,
                                        args, 
                                        correct_length, 
                                        default_validate = .default_validate){
-  validate <- modifyList(default_validate, validation)
+  validate <- utils::modifyList(default_validate, validation)
   
   funs <- lapply(
     field_types,
@@ -781,7 +807,7 @@ mChoiceCast <- function(data,
                                      default_cast = .default_cast){
   # REMINDER: Any changes to this method may suggest changes are needed to .exportRecordsTyped_recastRecords
   Records <- Raw
-  cast <- modifyList(default_cast, cast)
+  cast <- utils::modifyList(default_cast, cast)
   # Edits to this for loop may necessitate edits to the for loop in recastData
   for(i in seq_along(Raw))
   {
@@ -861,27 +887,45 @@ mChoiceCast <- function(data,
   
   id_field <- rcon$metadata()$field_name[1]
   
-  attr(Records, "invalid") <-
-    do.call(rbind, lapply(seq_along(Raw), function(i)
-    {
-      sel <- selector[,i]
-      if(any(sel))
-      {
-        data.frame(row=seq_len(nrow(Raw))[sel],
-                   record_id=if(id_field %in% colnames(Raw)) Raw[sel, id_field] else NA,
-                   field_name=field_names[i],
-                   field_type=field_types[i],
-                   value=Raw[sel, i])
-      } else NULL
-    }))
-  if(!is.null(attr(Records, "invalid")))
-  {
-    class(attr(Records, "invalid")) <- c("invalid", "data.frame")
-    attr(attr(Records, "invalid"), "time") <- format(Sys.Date(), "%c")  
-    attr(attr(Records, "invalid"), "version") <- rcon$version()
-    attr(attr(Records, "invalid"), "project") <- rcon$projectInfo()$project_title
-    warning("Some records failed validation. See 'invalid' attr.")
+  Invalid <- 
+    do.call(rbind, 
+            lapply(seq_along(Raw), 
+                   function(i)
+                   {
+                     sel <- selector[,i]
+                     if (any(sel))
+                     {
+                       data.frame(row = seq_len(nrow(Raw))[sel],
+                                  record_id = if(id_field %in% colnames(Raw)) Raw[sel, id_field] else NA,
+                                  field_name = field_names[i],
+                                  field_type = field_types[i],
+                                  value = Raw[sel, i], 
+                                  stringsAsFactors = FALSE)
+                     } else NULL
+                   }
+            )
+    )
+  
+  if (is.null(Invalid)){
+    Invalid <- data.frame(row = numeric(0), 
+                          record_id = character(0), 
+                          field_name = character(0), 
+                          field_type = character(0), 
+                          value = character(0), 
+                          stringsAsFactors = FALSE)
   }
+  
+  class(Invalid) <- c("invalid", "data.frame")
+  attr(Invalid, "time") <- format(Sys.Date(), "%c")
+  attr(Invalid, "version") <- rcon$version()
+  attr(Invalid, "project") <- rcon$projectInfo()$project_title
+    
+  if (nrow(Invalid) > 0)
+  {
+    warning("Some records failed validation. Use `reviewInvalidRecords` to review the failures.")
+  }
+  
+  attr(Records, "invalid") <- Invalid
   
   Records
 }

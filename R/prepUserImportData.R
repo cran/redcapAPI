@@ -2,23 +2,60 @@
 #' @title Prepare User Data for Import
 #' 
 #' @description Prepares a data frame for import via the API. Allows for 
-#'   data to be passed in either the raw format or the labelled data 
-#'   received from \code{exportUsers}.
-#'   
-#' @param data \code{data.frame} that has the structure of 
-#'   \code{redcapAPI:::REDCAP_USER_STRUCTURE}. It may also have additional 
+#'   data to be passed in either the raw format or the labeled data 
+#'   received from `exportUsers`.
+#'
+#' @inheritParams common-rcon-arg
+#' @param data `data.frame` with the structure of 
+#'   `redcapAPI:::REDCAP_USER_STRUCTURE`. It may also have additional 
 #'   columns for the form and export access of each of the instruments.
-#' @param rcon \code{redcapConnection}. Used to determine the instruments
-#'   in the project.
-#' @param consolidate \code{logical(1)} If \code{TRUE}, the form and data 
+#' @param consolidate `logical(1)` If `TRUE`, the form and data 
 #'   export access values will be read from the expanded columns. Otherwise, 
 #'   the consolidated values (as provided by the API export) are utilized.
+#' @param user_role `logical(1)` If `TRUE`, the code will 
+#'   treat the data as if it is being prepared for importing User Roles.
 #'   
+#' @return
+#' Returns a `data.frame` with user settings that will be accepted by the
+#' API for import. 
+#' 
+#' @seealso 
+#' [importUsers()], \cr
+#' [importUserRoles()]
+#' 
+#' @examples
+#' \dontrun{
+#' unlockREDCap(connections = c(rcon = "project_alias"), 
+#'              url = "your_redcap_url", 
+#'              keyring = "API_KEYs", 
+#'              envir = globalenv())
+#' 
+#' 
+#' # Prep user data
+#' NewData <- data.frame(username = "target_user", 
+#'                       design = 1, 
+#'                       api_export = "Access", 
+#'                       api_import = "No Access", 
+#'                       surveys_enabled = 0)
+#' prepUserImportData(data = NewData, 
+#'                    rcon = rcon)
+#'                    
+#' # Prep user role data
+#' NewData <- data.frame(unique_role_name = "target_user", 
+#'                       design = 1, 
+#'                       api_export = "Access", 
+#'                       api_import = "No Access", 
+#'                       surveys_enabled = 0)
+#' prepUserImportData(data = NewData, 
+#'                    rcon = rcon)
+#' }
+#' 
 #' @export
 
 prepUserImportData <- function(data, 
                                rcon, 
-                               consolidate = TRUE){
+                               consolidate = TRUE, 
+                               user_role = FALSE){
   
   ###################################################################
   # Argument Validation                                          ####
@@ -37,13 +74,19 @@ prepUserImportData <- function(data,
                             len = 1,
                             add = coll)
   
+  checkmate::assert_logical(x = user_role, 
+                            len = 1, 
+                            add = coll)
+  
   checkmate::reportAssertions(coll)
   
   primary_fields <- names(data)
   primary_fields <- primary_fields[!grepl("(_export_access|_form_access)$", 
                                           primary_fields)]
+  
   checkmate::assert_subset(x = primary_fields, 
-                           choices = names(REDCAP_USER_STRUCTURE), 
+                           choices = c(if (user_role) names(REDCAP_USER_ROLE_STRUCTURE) else names(REDCAP_USER_STRUCTURE), 
+                                       "data_export"), 
                            add = coll)
   
   checkmate::reportAssertions(coll)
@@ -71,7 +114,7 @@ prepUserImportData <- function(data,
                               format = "%Y-%m-%d")
   }
   
-  # Remove fields that can't be updated
+  # Remove fields that cannot be updated
   
   fields_to_remove <- c("email", "lastname", "firstname", 
                         "data_access_group_id")

@@ -1,3 +1,34 @@
+## DEPRECATION NOTICES
+
+A future release of version 3.0.0 will introduce several breaking changes!
+
+* The `exportRecords` function interface will be replaced. Please switch your processes to `exportRecordsTyped`
+* The `exportReports` function interface will be replaced. Please switch your processes to `exportReportsTyped`
+* The `importRecords` function interface will be replaced to utilize `castForImport` to prepare data for import. Validation logs will no longer be printed.
+* The `redcapFactor` class is being discontinued with all its supporting methods (including `redcapFactorFlip`). Please use `recastRecords` instead.
+* The `recodeCheck` function is being discontinued. Please use `recastRecords` instead.
+* The `exportProjectInfo` and `exportBundle` functions are being discontinued. Their functionality is replaced by caching values on the connection object.
+* The `cleanseMetaData` function is being discontinued.
+
+## 2.8.0
+
+* Changed `importArms` and `importEvents` to use `data` argument for consistency. Backward compatible via `...`.
+* Added several functions for manipulating DAGs.
+* Fixed bug in zero coded fields. NOTE: It is impossible to handle every possible case as the definition of zero coded fields in REDCap can be inconsistent.
+* Fixed issue in importUsers where existing roles might get dropped on an update. Now handles the multiple API calls seemlessly to properly handle user roles.
+* Fixed issue with decimal validation.
+* Added renameRecord function.
+* Fixed issue with preserving missing values in preparing checkbox fields for import
+* Added `default_cast_no_factor`, a list of casting functions that may be used to cast fields without casting any fields to factors.  It comes with an equivalent alias `default_cast_character`.
+* Documentation has been standardized. Related methods are now documented in the same
+help file. 
+* Add several functions for exporting Survey links and return codes
+* Replaced depricated function with_mock with with_mocked_bindings
+
+## 2.7.5
+
+* added filter_empty_rows flag to exportRecordsTyped.
+
 ## 2.7.4
 
 * Fixed upper/lower case for AND/OR in parseBranchingLogic
