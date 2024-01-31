@@ -132,7 +132,8 @@ exportFiles.redcapApiConnection <- function(rcon,
                returnFormat = 'csv',
                record = record,
                field = field, 
-               event = event)
+               event = event, 
+               repeat_instance = repeat_instance)
   
   body <- body[lengths(body) > 0]
   
@@ -156,7 +157,6 @@ exportFiles.redcapApiConnection <- function(rcon,
                                            dir_create = FALSE, 
                                            file_prefix = prefix)
   
-  message(sprintf("The file was saved to '%s'", 
-                  file.path(file_saved$directory, 
-                            file_saved$filename)))
+  invisible(file.path(file_saved$directory, 
+                      file_saved$filename))
 }

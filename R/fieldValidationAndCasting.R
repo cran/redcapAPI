@@ -25,7 +25,25 @@
 #' of `function(x, coding, field_name)`. `na` and `validation`
 #' functions are expected to return a logical vector of the same length as the
 #' column processed. Helper routines
-#' are provided here for common cases to construct these functions. 
+#' are provided here for common cases to construct these functions.
+#' 
+#' ## Missing Data Detection
+#' 
+#' `na_values` is a helper function to create a list of functions
+#' to test for NA based on field type. Useful for bulk override of
+#' NA detection for a project. The output can be directly passed to the `na`
+#' parameter of [exportRecordsTyped()].
+#' 
+#' Missing data detection is performed ahead of validation. Data that are found
+#' to be missing are excluded from validation reports. 
+#' 
+#' REDCap users may define project-level missing value codes. If such codes
+#' are defined, they can be seen in Project Setup > Additional Customizations >
+#' Missing Data Codes. They will also be displayed in the project's Codebook. 
+#' Project-level missing data codes cannot be accessed via the API, meaning
+#' `redcapAPI` is unable to assist in determining if a project has any. The 
+#' most likely symptom of project-level codes is a high frequency of 
+#' values failing validation (See `vignette("redcapAPI-missing-data-detection")`).
 #' 
 #' ## Validation Functions
 #' 
@@ -43,10 +61,14 @@
 #'   phone numbers. It removes punctuation and spaces prior to validating
 #'   with the regular expression.
 #'   
-#' `na_values` is a helper function to create a list of functions
-#' to test for NA based on field type. Useful for bulk override of
-#' NA detection for a project. The output can be directly passed to the `na`
-#' parameter of [exportRecordsTyped()].
+#' `valSkip` is a function that supports skipping the validation for 
+#'   a field type. It returns a `TRUE` value for each record, regardless
+#'   of its value. Validation skipping has occasional utility when importing
+#'   certain field types (such as `bioportal` or `sql`) where not all of the
+#'   eventual choices are available in the project yet.
+#'   
+#' `skip_validation` is a list of functions that just returns TRUE for
+#'   all data passed in.
 #' 
 #' ## Casting Functions
 #' 
@@ -105,10 +127,16 @@
 #' facilitate importing data. They convert time data into a character format 
 #' that will pass the API requirements. 
 #' 
+#' `castLogical` is a casting function that returns a logical vector for 
+#' common, binary-type responses. It is well suited to changing true/false, 
+#' yes/no, and checkbox fields into logical vectors, as it returns `TRUE` if
+#' the value is one of `c("1", "true", "yes")` and returns `FALSE` otherwise.
+#' 
 #' 
 #' ## Casting Lists
 #' `raw_cast` overrides all casting if passed as the `cast`
-#' parameter.
+#' parameter. It is important the the validation specified matches
+#' the chosen cast. For fully raw it should be `skip_validation`.
 #' 
 #' `default_cast_no_factor` is a list of casting functions that matches
 #' all of the default casts but with the exception that any fields that would
@@ -130,6 +158,7 @@
 #' | `valRx`                   | `logical`            |
 #' | `valChoice`               | `logical`            |
 #' | `valPhone`                | `logical`            |
+#' | `valSkip`                 | `logical`            |
 #' | `castLabel`               | `factor`             |
 #' | `castLabelCharacter`      | `character`          |
 #' | `castCode`                | `factor`             |
@@ -146,12 +175,20 @@
 #' | `castDpCharacter`         | `character`          |
 #' | `castTimeHHMM`            | `character`          |
 #' | `castTimeMMSS`            | `character`          |
+#' | `castLogical`             | `logical`            |
 #' 
 #' 
 #' @seealso 
 #' [fieldCastingFunctions()], \cr
 #' [exportRecordsTyped()], \cr
 #' [exportReportsTyped()]
+#' 
+#' ## Vignettes
+#' 
+#' `vignette("redcapAPI-casting-data")`\cr
+#' `vignette("redcapAPI-missing-data-detection")`\cr
+#' `vignette("redcapAPI-data-validation)`\cr
+#' `vignette("redcapAPI-faq)`
 #' 
 #' @examples
 #' \dontrun{
@@ -190,6 +227,13 @@ valChoice <- function(x, field_name, coding) x %in% coding | x %in% names(coding
 valPhone <- function(x, field_name, coding){
   x <- gsub("[[:punct:][:space:]]", "", x)
   grepl(REGEX_PHONE, x)
+}
+
+#' @rdname fieldValidationAndCasting
+#' @export
+
+valSkip <- function(x, field_name, coding){
+  rep(TRUE, length(x))
 }
 
 #' @rdname fieldValidationAndCasting
@@ -436,6 +480,16 @@ castTimeMMSS <- function(x, field_name, coding){
   x
 }
 
+#' @rdname fieldValidationAndCasting
+#' @export
+
+castLogical <- function(x, field_name, coding){
+  is_na <- is.na(x)
+  x <- x %in% c("1", "true", "yes")
+  x[is_na] <- NA
+  x
+}
+
 #####################################################################
 # Cast function lists                                            ####
 
@@ -462,7 +516,8 @@ raw_cast <- list(
   radio              = NA,
   dropdown           = NA,
   sql                = NA, 
-  system             = NA
+  system             = NA, 
+  bioportal          = NA
 )
 
 #' @rdname fieldValidationAndCasting
@@ -492,14 +547,16 @@ default_cast_no_factor <- list(
   select                   = castLabelCharacter,
   radio                    = castLabelCharacter,
   dropdown                 = castLabelCharacter,
-  sql                      = NA, 
-  system                   = castLabelCharacter
+  sql                      = castLabelCharacter, 
+  system                   = castLabelCharacter, 
+  bioportal                = castLabelCharacter
 )
 
 #' @rdname fieldValidationAndCasting
 #' @export
 
 default_cast_character <- default_cast_no_factor
+
 
 #####################################################################
 # Unexported - default lists for exportRecordsTyped              ####
@@ -523,7 +580,8 @@ default_cast_character <- default_cast_no_factor
   select             = valChoice,
   radio              = valChoice,
   dropdown           = valChoice,
-  sql                = NA # This requires a bit more effort !?
+  sql                = valChoice, 
+  bioportal          = valChoice
 )
 
 .default_cast <- list(
@@ -550,8 +608,9 @@ default_cast_character <- default_cast_no_factor
   select                   = castLabel,
   radio                    = castLabel,
   dropdown                 = castLabel,
-  sql                      = NA, 
-  system                   = castLabel
+  sql                      = castLabel, 
+  system                   = castLabel, 
+  bioportal                = castLabel
 )
 
 #####################################################################
@@ -585,7 +644,8 @@ default_cast_character <- default_cast_no_factor
   phone                    = valPhone,
   zipcode                  = valRx(REGEX_ZIPCODE),
   slider                   = valRx(REGEX_NUMBER),
-  sql                      = NA # This requires a bit more effort !?
+  sql                      = valChoice,
+  bioportal                = valChoice
 )
 
 .default_cast_import <- list(
@@ -616,8 +676,9 @@ default_cast_character <- default_cast_no_factor
   phone                    = as.character,
   zipcode                  = as.character, 
   slider                   = as.numeric,
-  sql                      = NA, 
-  system                   = castRaw
+  sql                      = castRaw, 
+  system                   = castRaw, 
+  bioportal                = castCodeCharacter
 )
 
 #####################################################################
@@ -628,7 +689,16 @@ FIELD_TYPES <- c(
   "time_hh_mm_ss",  "time",       "float",              "number",
   "calc",           "int",        "integer",            "yesno",
   "truefalse",      "checkbox",   "form_complete",      "select",
-  "radio",          "dropdown",   "sql")
+  "radio",          "dropdown",   "sql",                "system", 
+  "bioportal")
 
 
+
+  #####################################################################
+ #
+# Validation lists 
+
+#' @rdname fieldValidationAndCasting
+#' @export
+skip_validation <- na_values(valSkip)
 

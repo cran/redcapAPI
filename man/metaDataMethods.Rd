@@ -19,7 +19,6 @@ importMetaData(rcon, data, ...)
   fields = character(0),
   forms = character(0),
   ...,
-  drop_utf8 = FALSE,
   error_handling = getOption("redcap_error_handling"),
   config = list(),
   api_param = list()
@@ -53,9 +52,6 @@ dictionary, and not the display names shown on the web interface.}
 
 \item{refresh}{\code{logical(1)}. When \code{TRUE}, the cached metadata
 and instruments will be refreshed after the import.}
-
-\item{drop_utf8}{\code{logical(1)}. When \code{TRUE}, non-ASCII characters
-will be replaced with empty characters.}
 
 \item{...}{Arguments to pass to other methods}
 
@@ -92,8 +88,7 @@ documented here, but the most commonly used within \code{redcapAPI} are
 }
 
 
-\code{importMetaData} has no return and displays a message indicating
-the number of fields that were imported.
+\code{importMetaData} invisibly returns the number of fields that were imported.
 }
 \description{
 These methods provide the user access to a REDCap project's

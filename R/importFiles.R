@@ -32,7 +32,7 @@ importFiles.redcapApiConnection <- function(rcon,
   if (is.numeric(record)) record <- as.character(record)
   
    ##################################################################
-  # Argumetn Validation
+  # Argument Validation
   
   coll <- checkmate::makeAssertCollection()
   
@@ -131,7 +131,7 @@ importFiles.redcapApiConnection <- function(rcon,
       fileThere <- fileThere[fileThere$redcap_repeat_instance %in% repeat_instance, ]
     }
     
-    if (nrow(fileThere) > 0 && !is.na(fileThere[[field]])) 
+    if (nrow(fileThere) > 0 && !any(is.na(fileThere[[field]])))
       coll$push("A file exists and overwrite = FALSE")
   }
   
@@ -162,5 +162,5 @@ importFiles.redcapApiConnection <- function(rcon,
   if (response$status_code != "200") 
     redcapError(response, error_handling)
   else 
-    message("The file was successfully uploaded")
+    invisible(TRUE)
 }

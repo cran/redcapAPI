@@ -38,6 +38,7 @@ exportReportsTyped(rcon, report_id, ...)
   cast = list(),
   assignment = list(label = stripHTMLandUnicode, units = unitsFieldAnnotation),
   filter_empty_rows = TRUE,
+  warn_zero_coded = TRUE,
   ...,
   config = list(),
   api_param = list(),
@@ -57,6 +58,7 @@ exportReportsTyped(rcon, report_id, ...)
   validation = list(),
   cast = list(),
   assignment = list(label = stripHTMLandUnicode, units = unitsFieldAnnotation),
+  warn_zero_coded = TRUE,
   ...
 )
 
@@ -68,6 +70,7 @@ exportReportsTyped(rcon, report_id, ...)
   validation = list(),
   cast = list(),
   assignment = list(label = stripHTMLandUnicode, units = unitsFieldAnnotation),
+  warn_zero_coded = TRUE,
   ...,
   config = list(),
   api_param = list(),
@@ -118,11 +121,11 @@ Otherwise, records created or modified before this date will be returned.}
 \item{na}{A named \code{list} of user specified functions to determine if the
 data is NA. This is useful when data is loaded that has coding for NA, e.g.
 -5 is NA. Keys must correspond to a truncated REDCap field type, i.e.
-{date_, datetime_, datetime_seconds_, time_mm_ss, time_hh_mm_ss, time, float,
+date_, datetime_, datetime_seconds_, time_mm_ss, time_hh_mm_ss, time, float,
 number, calc, int, integer, select, radio, dropdown, yesno, truefalse,
-checkbox, form_complete, sql}. The function will be provided the variables
-(x, field_name, coding). The function must return a vector of logicals
-matching the input. It defaults to \code{\link[=isNAorBlank]{isNAorBlank()}} for all
+checkbox, form_complete, sql, system. The function will be provided the
+variables (x, field_name, coding). The function must return a vector of
+logicals matching the input. It defaults to \code{\link[=isNAorBlank]{isNAorBlank()}} for all
 entries.}
 
 \item{validation}{A named \code{list} of user specified validation functions. The
@@ -135,12 +138,14 @@ are not identified as NA will be passed to validation functions.}
 \item{cast}{A named \code{list} of user specified class casting functions. The
 same named keys are supported as the na argument. The function will be
 provided the variables (x, field_name, coding). The function must return a
-vector of logical matching the input length. See \code{\link[=fieldValidationAndCasting]{fieldValidationAndCasting()}}}
+vector of logical matching the input length. The cast should match the validation,
+if one is using \code{raw_cast}, then \code{validation=skip_validation} is likely
+the desired intent. See \code{\link[=fieldValidationAndCasting]{fieldValidationAndCasting()}}}
 
 \item{assignment}{A named \code{list} of functions. These functions are provided, field_name,
 label, description and field_type and return a list of attributes to assign
 to the column. Defaults to creating a label attribute from the stripped
-HTML and UNICODE raw label and scanning for units={"UNITS"} in description}
+HTML and UNICODE raw label and scanning for units=\{"UNITS"\} in description}
 
 \item{filter_empty_rows}{\code{logical(1)}. Filter out empty rows post retrieval.
 Defaults to \code{TRUE}.}
@@ -150,6 +155,9 @@ delimiter for the CSV file received from the API.}
 
 \item{batch_size}{\code{integerish(1)} or \code{NULL}. When \code{NULL},
 all records are pulled. Otherwise, the records all pulled in batches of this size.}
+
+\item{warn_zero_coded}{\code{logical(1)}. Turn on or off warnings about
+potentially problematic zero coded fields. Defaults to \code{TRUE}.}
 
 \item{...}{Arguments to pass to other methods}
 
@@ -180,7 +188,17 @@ The 'offline' method operates on the raw (unlabeled) data
 file downloaded from REDCap along with the data dictionary.
 This is made available for instances where the API cannot be accessed for
 some reason (such as waiting for API approval from the REDCap administrator).
-\subsection{Record Identifier Fields}{
+
+When validating data for \code{offlineRedcapConnection} objects,
+links to invalid data forms will not work if the user does not provide
+the \code{url}, \code{version}, \code{project_info}, and \code{events} arguments (if the
+project is longitudinal). For the \code{project_info}, the values \code{project_id}
+and \code{is_longitudinal} are required. The user may be able to provide
+as little as \verb{project_info = data.frame(project_id = [id], is_longitudinal = [0/1])}.
+The user should be aware that the REDCap User Interface download for
+events does not include the event ID. To include the event ID, the user
+must construct a data frame to pass to \code{offlineConnection}.
+\subsection{Record Identifier (System) Fields}{
 
 In all calls, the project's ID fields will be included--there is no option
 provided to prevent this. Additionally, if the project has a secondary
@@ -198,6 +216,21 @@ some post-processing functions that operate on repeating instrument data.
 The combination of the project ID field, secondary unique field, and the
 system fields are what uniquely identify an experimental unit. In nearly
 all cases, it is desirable to have them all included.
+
+System fields are cast to labelled values by default. They may be cast
+to their coded values using the override \code{cast = list(system = castRaw)}.
+The fields affected by the \code{system} override are \code{redcap_event_name},
+\code{redcap_repeat_instrument}, and \code{redcap_data_access_group}.
+}
+
+\subsection{BioPortal Fields}{
+
+Text fields that are validation enabled using the BioPortal Ontology service
+may be cast to labeled values so long as the labels have been cached on the
+REDCap server. Caching is performed when the field is viewed in a form on
+the web interface. However, labels are not cached when data are imported
+via the API. In cases where labels are not cached, the coded value is
+treated as both the code and the label.
 }
 
 \subsection{Record Batching}{
@@ -260,13 +293,13 @@ for a full listing of package provided cast functions.
 A zero-coded check field is a field of the REDCap type \code{checkbox} that has
 a coding definition of \verb{0, [label]}. When exported, the field names for
 these fields is \verb{[field_name]___0}. As in other checkbox fields, the
-raw data output returns binary values where 0 represent and unchecked
+raw data output returns binary values where 0 represent an unchecked
 box and 1 represents a checked box. For zero-coded checkboxes, then, a
 value of 1 indicates that 0 was selected.
 
 This coding rarely presents a problem when casting from raw values
 (as is done in \code{exportRecordsTyped}). However, casting from coded or
-labeled values can be problematic, as it In this case, it becomes
+labeled values can be problematic. In this case, it becomes
 indeterminate from context if the intent of \code{0} is 'false' or the coded
 value '0' ('true') ...
 
@@ -363,5 +396,14 @@ exportRecordsTyped(rcon_off)
 \code{\link[=mChoiceCast]{mChoiceCast()}}, \cr
 \code{\link[=splitForms]{splitForms()}}, \cr
 \code{\link[=widerRepeated]{widerRepeated()}}
+}
+
+\subsection{Vignettes}{
+
+\code{vignette("redcapAPI-offline-connection")}\cr
+\code{vignette("redcapAPI-casting-data")}\cr
+\code{vignette("redcapAPI-missing-data-detection")}\cr
+\verb{vignette("redcapAPI-data-validation)}\cr
+\verb{vignette("redcapAPI-faq)}
 }
 }

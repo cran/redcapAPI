@@ -43,6 +43,8 @@
 #'   all records are pulled. Otherwise, the records all pulled in batches of this size.
 #' @param filter_empty_rows `logical(1)`. Filter out empty rows post retrieval. 
 #'   Defaults to `TRUE`.
+#' @param warn_zero_coded `logical(1)`. Turn on or off warnings about
+#'   potentially problematic zero coded fields. Defaults to `TRUE`. 
 #' 
 #' @details
 #' 
@@ -51,7 +53,17 @@
 #' This is made available for instances where the API cannot be accessed for 
 #' some reason (such as waiting for API approval from the REDCap administrator).
 #' 
-#' ## Record Identifier Fields 
+#' When validating data for `offlineRedcapConnection` objects, 
+#' links to invalid data forms will not work if the user does not provide
+#' the `url`, `version`, `project_info`, and `events` arguments (if the 
+#' project is longitudinal). For the `project_info`, the values `project_id`
+#' and `is_longitudinal` are required. The user may be able to provide
+#' as little as `project_info = data.frame(project_id = [id], is_longitudinal = [0/1])`.
+#' The user should be aware that the REDCap User Interface download for 
+#' events does not include the event ID. To include the event ID, the user
+#' must construct a data frame to pass to `offlineConnection`.
+#' 
+#' ## Record Identifier (System) Fields 
 #' 
 #' In all calls, the project's ID fields will be included--there is no option
 #' provided to prevent this. Additionally, if the project has a secondary
@@ -70,6 +82,19 @@
 #' system fields are what uniquely identify an experimental unit. In nearly 
 #' all cases, it is desirable to have them all included.
 #' 
+#' System fields are cast to labelled values by default. They may be cast 
+#' to their coded values using the override `cast = list(system = castRaw)`.
+#' The fields affected by the `system` override are `redcap_event_name`, 
+#' `redcap_repeat_instrument`, and `redcap_data_access_group`.
+#' 
+#' ## BioPortal Fields
+#' 
+#' Text fields that are validation enabled using the BioPortal Ontology service
+#' may be cast to labeled values so long as the labels have been cached on the
+#' REDCap server. Caching is performed when the field is viewed in a form on 
+#' the web interface. However, labels are not cached when data are imported 
+#' via the API. In cases where labels are not cached, the coded value is 
+#' treated as both the code and the label.
 #' 
 #' ## Record Batching
 #' 
@@ -142,6 +167,14 @@
 #' [mChoiceCast()], \cr
 #' [splitForms()], \cr
 #' [widerRepeated()]
+#' 
+#' ## Vignettes
+#' 
+#' `vignette("redcapAPI-offline-connection")`\cr
+#' `vignette("redcapAPI-casting-data")`\cr
+#' `vignette("redcapAPI-missing-data-detection")`\cr
+#' `vignette("redcapAPI-data-validation)`\cr
+#' `vignette("redcapAPI-faq)`
 #' 
 #' @examples
 #' \dontrun{
@@ -216,6 +249,7 @@ recordsTypedMethods <- function(rcon,
                                 filter_empty_rows, 
                                 csv_delimiter, 
                                 batch_size,
+                                warn_zero_coded,
                                 ...,
                                 error_handling, 
                                 config, 

@@ -232,6 +232,21 @@ test_that(
 )
 
 #####################################################################
+# valSkip                                                        ####
+
+test_that(
+  "valSkip gives expected results",
+  {
+     coding <- c("x" = "Ex", y = "Why", z = "Zee")
+     field_name <- "some_field"
+     x <- rep(FALSE, 5)
+     
+     expect_equal(valSkip(x, field_name, coding), 
+                  rep(TRUE, 5))
+  }
+)
+
+#####################################################################
 # getCodingIndex                                                 ####
 
 test_that(
@@ -749,6 +764,27 @@ test_that(
     
     expect_equal(castCheckForImport()(x), 
                  c(0, NA, 0, NA, 1, 1, 0))
+  }
+)
+
+#####################################################################
+# castLogical                                                    ####
+
+test_that(
+  "castLogical",
+  {
+    x <- c("0", "1", "false", "true", "no", "yes")
+    
+    expect_equal(castLogical(x), 
+                 c(FALSE, TRUE, FALSE, TRUE, FALSE, TRUE))
+    
+    expect_equal(castLogical(toupper(x)), 
+                 c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE))
+    
+    # Preserves NA
+    x <- c("0", NA_character_, "1")
+    expect_equal(castLogical(x), 
+                 c(FALSE, NA, TRUE))
   }
 )
 

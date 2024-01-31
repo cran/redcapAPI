@@ -60,7 +60,17 @@
 #' A 'batched' import is one where the export is performed over a series of 
 #' API calls rather than one large call.  For large projects on small servers, 
 #' this may prevent a single user from tying up the server and forcing others 
-#' to wait on a larger job.  
+#' to wait on a larger job. 
+#' 
+#' ## BioPortal Fields
+#' 
+#' Text fields that are validation enabled using the BioPortal Ontology service
+#' may be imported by providing the coded value. Importing the coded value 
+#' does not, however, guarantee that the labeled value will be immediately
+#' available. Labels for BioPortal values are cached on the REDCap server
+#' in a process that occurs when viewing data in the user interface. Thus, 
+#' if the label has not be previously cached on the server, the code will be
+#' used to represent both the code and the label.
 #' 
 #' @return
 #' `importRecords`, when `returnData = FALSE`, returns the content from the
@@ -433,9 +443,7 @@ import_records_unbatched <- function(rcon,
   
   if (response$status_code == "200"){
     if (returnContent %in% c("ids", "auto_ids")){
-      utils::read.csv(text = as.character(response), 
-               na.strings = "", 
-               stringsAsFactors = FALSE)
+      as.data.frame(response)
     } else {
       as.character(response)
     }

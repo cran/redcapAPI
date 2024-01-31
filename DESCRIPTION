@@ -1,21 +1,28 @@
 Package: redcapAPI
 Type: Package
 Title: Interface to 'REDCap'
-Version: 2.8.0
+Version: 2.8.4
 Authors@R: c(
+    person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
+           role = c("ctb", "aut")),
     person("Shawn", "Garbett", email = "shawn.garbett@vumc.org",
            comment = c(ORCID="0000-0003-4079-5621"),
            role = c("cre","ctb")),
-    person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
-           role = c("ctb", "aut")),
+    person("Savannah", "Obregon", role = "ctb"),
+    person("Thomas", "Obadia", role="ctb"),
+    person("Marcus", "Lehr", role = "ctb", email = "marcus.j.lehr@gmail.com"), 
+    person("Brian", "High", role="ctb"),
     person("Stephen", "Lane", role = "ctb"),
     person("Will", "Beasley", role = "ctb"),
-    person("Jeffrey", "Horner", role = "aut"),
     person("Will", "Gray", role = "ctb"),
+    person("Nick", "Kennedy", role = "ctb"),
+    person("Tan", "Hsi-Nien", role = "ctb"),
+    person("Jeffrey", "Horner", role = "aut"),
     person("Jeremy", "Stephens", role = "ctb"), 
-    person("Marcus", "Lehr", role = "ctb", email = "marcus.j.lehr@gmail.com"), 
     person("Cole", "Beck", role = "ctb"),
-    person("Savannah", "Obregon", role = "ctb"))
+    person("Bradley", "Johnson", role="ctb"),
+    person("Philip", "Chase", role="ctb"),
+    person("Paddy", "Tobias", role = "ctb"))
 Maintainer: Shawn Garbett <shawn.garbett@vumc.org>
 Description: Access data stored in 'REDCap' databases using the Application
     Programming Interface (API).  'REDCap' (Research Electronic Data CAPture;
@@ -38,16 +45,23 @@ BugReports: https://github.com/vubiostat/redcapAPI/issues
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2023-09-12 15:52:40 UTC; garbetsp
-Author: Shawn Garbett [cre, ctb] (<https://orcid.org/0000-0003-4079-5621>),
-  Benjamin Nutter [ctb, aut],
+Packaged: 2024-01-31 16:42:00 UTC; garbetsp
+Author: Benjamin Nutter [ctb, aut],
+  Shawn Garbett [cre, ctb] (<https://orcid.org/0000-0003-4079-5621>),
+  Savannah Obregon [ctb],
+  Thomas Obadia [ctb],
+  Marcus Lehr [ctb],
+  Brian High [ctb],
   Stephen Lane [ctb],
   Will Beasley [ctb],
-  Jeffrey Horner [aut],
   Will Gray [ctb],
+  Nick Kennedy [ctb],
+  Tan Hsi-Nien [ctb],
+  Jeffrey Horner [aut],
   Jeremy Stephens [ctb],
-  Marcus Lehr [ctb],
   Cole Beck [ctb],
-  Savannah Obregon [ctb]
+  Bradley Johnson [ctb],
+  Philip Chase [ctb],
+  Paddy Tobias [ctb]
 Repository: CRAN
-Date/Publication: 2023-09-12 23:50:02 UTC
+Date/Publication: 2024-01-31 18:00:05 UTC

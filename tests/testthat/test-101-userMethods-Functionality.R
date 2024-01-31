@@ -12,19 +12,18 @@ test_that(
     }
     
     # Import a user
-    expect_message(importUsers(rcon, 
-                               data = data.frame(username = EXPENDABLE_USER)), 
-                   "Users Added/Modified: 1")
-    
+    n_imported <- importUsers(rcon, 
+                              data = data.frame(username = EXPENDABLE_USER))
+    expect_equal(n_imported, "1")
     # Verify the user was added
     expect_true(EXPENDABLE_USER %in% rcon$users()$username)
     
     # Modify the user permissions
     
-    expect_message(importUsers(rcon, 
-                               data = data.frame(username = EXPENDABLE_USER, 
-                                                 alerts = 1)), 
-                   "Users Added/Modified: 1")
+    n_imported <- importUsers(rcon, 
+                              data = data.frame(username = EXPENDABLE_USER, 
+                                                alerts = 1)) 
+    expect_equal(n_imported, "1")
     
     Users <- exportUsers(rcon)
     Users <- Users[rcon$users()$username %in% EXPENDABLE_USER, ]
@@ -38,6 +37,7 @@ test_that(
     skip_if(!RUN_USER_TESTS,
             "User tests without an expendable user could have negative consequences and are not run.")
     
+    rcon$refresh_users()
     if (EXPENDABLE_USER %in% rcon$users()$username){
       deleteUsers(rcon, 
                   users = EXPENDABLE_USER)
@@ -87,26 +87,20 @@ test_that(
     
     Users <- exportUsers(rcon)
     Users <- Users[Users$username %in% EXPENDABLE_USER, ]
-    expect_true(Users$forms == "record_id:1")
-    # FIXME: I don't think forms_export is working with a CSV export
-    #        Not sure if this is a REDCap problem or a redcapAPI problem.
-    # expect_true(Users$forms_export == "record_id:1")
-    
+    expect_true(grepl("record_id:1",Users$forms))
+
     # Update form permissions with unconsolidated format
     
     importUsers(rcon, 
                 data = data.frame(username = EXPENDABLE_USER,
                                   data_export = 1, 
-                                  forms = "record_id:0", 
+                                  forms = c("record_id:0"), 
                                   forms_export = "record_id:0"), 
                 consolidate = FALSE)
     
     Users <- exportUsers(rcon)
     Users <- Users[Users$username %in% EXPENDABLE_USER, ]
-    expect_true(Users$forms == "record_id:0")
-    # FIXME: I don't think forms_export is working with a CSV export
-    #        Not sure if this is a REDCap problem or a redcapAPI problem.
-    # expect_true(Users$forms_export == "record_id:0")
+    expect_true(grepl("record_id:0",Users$forms))
   }
 )
 
@@ -166,8 +160,8 @@ test_that(
             "User tests without an expendable user could have negative consequences and are not run.")
 
     # Clean Up
-    expect_message(deleteUsers(rcon, 
-                               users = EXPENDABLE_USER), 
-                   "Users Deleted: 1")
+    n_deleted <- deleteUsers(rcon, 
+                               users = EXPENDABLE_USER) 
+    expect_equal(n_deleted, "1")
   }
 )

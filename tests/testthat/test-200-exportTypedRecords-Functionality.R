@@ -44,15 +44,19 @@ importMappings(rcon,
 ImportData <- test_redcapAPI_Data[names(test_redcapAPI_Data) %in% MetaData$field_name]
 ImportData <- ImportData[!is.na(ImportData$email_test), ]
 # castForImport only needed until 3.0.0
-ImportData <- castForImport(ImportData, rcon, 
+ImportData <- castForImport(ImportData, 
+                            rcon, 
+                            validation = list(bioportal = valSkip),
                             cast = list(number_1dp = as.numeric, 
                                         number_2dp = as.numeric, 
                                         number_1dp_comma_decimal = as.numeric, 
-                                        number_2dp_comma_decimal = as.numeric))
+                                        number_2dp_comma_decimal = as.numeric, 
+                                        bioportal = as.character))
 
 
 importRecords(rcon, 
               ImportData)
+rcon$flush_externalCoding()
 
 #####################################################################
 # Functional Testing                                             ####
@@ -126,6 +130,19 @@ test_that(
     expect_equal(attr(rec$date_dmy_test, "units"), "time")
   }
 )
+
+test_that(
+  "Checkbox fields labels include the choice", 
+  {
+    expect_equal(attr(rec$checkbox_test___x, "label"), 
+                 "Checkbox Example (choice=Guitar)")
+    expect_equal(attr(rec$checkbox_test___y, "label"), 
+                 "Checkbox Example (choice=Ukulele)")
+    expect_equal(attr(rec$checkbox_test___z, "label"), 
+                 "Checkbox Example (choice=Mandolin)")
+  }
+)
+
 rm(rec)
 
 #####################################################################
@@ -165,7 +182,7 @@ test_that(
     expect_equal(unique(inv$value), "7")
     expect_data_frame(inv)
     expect_equal(names(inv), 
-                 c("row", "record_id", "field_name", "field_type", "value"))
+                 c("row", "record_id", "field_name", "form_name", "field_type", "event_id", "value", "link_to_form"))
     sapply(c(1:2), function(i) expect_true(!i %in% inv$row))
     sapply(3:5, function(i) expect_true(i %in% inv$row))
     
@@ -176,7 +193,7 @@ test_that(
     expect_equal(unique(inv$value), "7")
     expect_data_frame(inv)
     expect_equal(names(inv), 
-                 c("row", "record_id", "field_name", "field_type", "value"))
+                 c("row", "record_id", "field_name", "form_name", "field_type", "event_id", "value", "link_to_form"))
     sapply(c(1:2), function(i) expect_true(!i %in% inv$row))
     sapply(3:5, function(i) expect_true(i %in% inv$row))
     
@@ -194,7 +211,8 @@ test_that(
     expect_equal(unique(inv$value), "7")
     expect_data_frame(inv)
     expect_equal(names(inv), 
-                 c("row", "record_id", "field_name", "field_type", "value"))
+                 c("row", "record_id", "field_name", "form_name", "field_type", 
+                   "event_id", "value", "link_to_form"))
   }
 )
 
@@ -236,7 +254,7 @@ test_that(
 )
 
 #####################################################################
-# Export for a single record                                     ###f
+# Export for a single record                                     ####
 
 test_that(
   "Export succeeds for a single record", 
@@ -479,3 +497,39 @@ test_that(
   }
 )
 
+
+#####################################################################
+# Batching with multiple events                                  ####
+
+test_that(
+  "Batching behaves correctly when records have data in multiple events", 
+  {
+    importEvents(rcon, 
+                 data = data.frame(event_name = "Event 2", 
+                                   arm_num = 1))
+    
+    OrigMapping <- rcon$mapping()
+    
+    NewMapping <- OrigMapping
+    NewMapping$unique_event_name <- "event_2_arm_1"
+    NewMapping <- cbind(OrigMapping, NewMapping)
+    
+    importMappings(rcon, data = NewMapping)
+    
+    importRecords(rcon, 
+                  data = data.frame(record_id = 1, 
+                                    redcap_event_name = "event_2_arm_1"))
+    
+    Unbatched <- exportRecordsTyped(rcon)
+    
+    Batched <- exportRecordsTyped(rcon, batch_size = 1)
+    
+    expect_true(identical(Unbatched, Batched))
+    
+    deleteEvents(rcon, 
+                 events = "event_2_arm_1")
+    
+    importMappings(rcon, 
+                   OrigMapping)
+  }
+)

@@ -111,14 +111,14 @@ body of the API call. This provides users to execute calls with options
 that may not otherwise be supported by \code{redcapAPI}.}
 }
 \value{
-\code{exportFiles} has no return and displays a message with file path to
-which the exported file was saved.
+\code{exportFiles} invisibly returns the file path to which the exported
+file was saved.
 
-\code{importFiles} has no return and displays a message indicating whether
-the import was successful.
+\code{importFiles} invisibly returns \code{TRUE} when successful, or throws an
+error if the import failed.
 
-\code{deleteFiles} has no return and displays a message indicating whether
-the file was successfully deleted from the project.
+\code{deleteFiles} invisible returns \code{TRUE} when successful, or throws an
+error if the deletion failed.
 }
 \description{
 These methods enable to the user to export a file stored
@@ -127,7 +127,7 @@ in a project field, import a file, or delete an existing file.
 \details{
 These functions only export, import, or delete a single file.
 
-When exporting, the file cannot be changed; whatever name exists in
+When exporting, the file name cannot be changed; whatever name exists in
 REDCap is the name that will be used. The record ID and event name
 may be appended as a prefix.
 }
@@ -174,4 +174,7 @@ deleteFiles(rcon,
             field = "file_upload_test")
 }
 
+}
+\seealso{
+\code{\link[=exportFilesMultiple]{exportFilesMultiple()}}
 }

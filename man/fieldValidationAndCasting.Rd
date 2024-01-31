@@ -7,6 +7,7 @@
 \alias{valRx}
 \alias{valChoice}
 \alias{valPhone}
+\alias{valSkip}
 \alias{na_values}
 \alias{castLabel}
 \alias{castLabelCharacter}
@@ -24,16 +25,20 @@
 \alias{castDpCharacter}
 \alias{castTimeHHMM}
 \alias{castTimeMMSS}
+\alias{castLogical}
 \alias{raw_cast}
 \alias{default_cast_no_factor}
 \alias{default_cast_character}
+\alias{skip_validation}
 \title{Helper functions for \code{exportRecordsTyped} Validation and Casting}
 \format{
-An object of class \code{list} of length 20.
+An object of class \code{list} of length 21.
 
-An object of class \code{list} of length 24.
+An object of class \code{list} of length 25.
 
-An object of class \code{list} of length 24.
+An object of class \code{list} of length 25.
+
+An object of class \code{list} of length 21.
 }
 \usage{
 isNAorBlank(x, ...)
@@ -43,6 +48,8 @@ valRx(rx)
 valChoice(x, field_name, coding)
 
 valPhone(x, field_name, coding)
+
+valSkip(x, field_name, coding)
 
 na_values(FUN)
 
@@ -78,11 +85,15 @@ castTimeHHMM(x, field_name, coding)
 
 castTimeMMSS(x, field_name, coding)
 
+castLogical(x, field_name, coding)
+
 raw_cast
 
 default_cast_no_factor
 
 default_cast_character
+
+skip_validation
 }
 \arguments{
 \item{x}{\code{character}. A vector to check.}
@@ -115,6 +126,7 @@ following table:\tabular{ll}{
    \code{valRx} \tab \code{logical} \cr
    \code{valChoice} \tab \code{logical} \cr
    \code{valPhone} \tab \code{logical} \cr
+   \code{valSkip} \tab \code{logical} \cr
    \code{castLabel} \tab \code{factor} \cr
    \code{castLabelCharacter} \tab \code{character} \cr
    \code{castCode} \tab \code{factor} \cr
@@ -131,6 +143,7 @@ following table:\tabular{ll}{
    \code{castDpCharacter} \tab \code{character} \cr
    \code{castTimeHHMM} \tab \code{character} \cr
    \code{castTimeMMSS} \tab \code{character} \cr
+   \code{castLogical} \tab \code{logical} \cr
 }
 }
 \description{
@@ -147,6 +160,25 @@ of \verb{function(x, coding, field_name)}. \code{na} and \code{validation}
 functions are expected to return a logical vector of the same length as the
 column processed. Helper routines
 are provided here for common cases to construct these functions.
+\subsection{Missing Data Detection}{
+
+\code{na_values} is a helper function to create a list of functions
+to test for NA based on field type. Useful for bulk override of
+NA detection for a project. The output can be directly passed to the \code{na}
+parameter of \code{\link[=exportRecordsTyped]{exportRecordsTyped()}}.
+
+Missing data detection is performed ahead of validation. Data that are found
+to be missing are excluded from validation reports.
+
+REDCap users may define project-level missing value codes. If such codes
+are defined, they can be seen in Project Setup > Additional Customizations >
+Missing Data Codes. They will also be displayed in the project's Codebook.
+Project-level missing data codes cannot be accessed via the API, meaning
+\code{redcapAPI} is unable to assist in determining if a project has any. The
+most likely symptom of project-level codes is a high frequency of
+values failing validation (See \code{vignette("redcapAPI-missing-data-detection")}).
+}
+
 \subsection{Validation Functions}{
 
 \code{isNAorBlank} returns TRUE/FALSE if field is NA or blank. Helper
@@ -163,10 +195,14 @@ matches one of the choices.
 phone numbers. It removes punctuation and spaces prior to validating
 with the regular expression.
 
-\code{na_values} is a helper function to create a list of functions
-to test for NA based on field type. Useful for bulk override of
-NA detection for a project. The output can be directly passed to the \code{na}
-parameter of \code{\link[=exportRecordsTyped]{exportRecordsTyped()}}.
+\code{valSkip} is a function that supports skipping the validation for
+a field type. It returns a \code{TRUE} value for each record, regardless
+of its value. Validation skipping has occasional utility when importing
+certain field types (such as \code{bioportal} or \code{sql}) where not all of the
+eventual choices are available in the project yet.
+
+\code{skip_validation} is a list of functions that just returns TRUE for
+all data passed in.
 }
 
 \subsection{Casting Functions}{
@@ -225,12 +261,18 @@ appropriate usage when casting for one decimal place is
 \code{castTimeHHMM} and \code{castTimeMMSS} are casting functions to
 facilitate importing data. They convert time data into a character format
 that will pass the API requirements.
+
+\code{castLogical} is a casting function that returns a logical vector for
+common, binary-type responses. It is well suited to changing true/false,
+yes/no, and checkbox fields into logical vectors, as it returns \code{TRUE} if
+the value is one of \code{c("1", "true", "yes")} and returns \code{FALSE} otherwise.
 }
 
 \subsection{Casting Lists}{
 
 \code{raw_cast} overrides all casting if passed as the \code{cast}
-parameter.
+parameter. It is important the the validation specified matches
+the chosen cast. For fully raw it should be \code{skip_validation}.
 
 \code{default_cast_no_factor} is a list of casting functions that matches
 all of the default casts but with the exception that any fields that would
@@ -261,5 +303,12 @@ customCastCode <- function(x, field_name, coding){
 \code{\link[=fieldCastingFunctions]{fieldCastingFunctions()}}, \cr
 \code{\link[=exportRecordsTyped]{exportRecordsTyped()}}, \cr
 \code{\link[=exportReportsTyped]{exportReportsTyped()}}
+\subsection{Vignettes}{
+
+\code{vignette("redcapAPI-casting-data")}\cr
+\code{vignette("redcapAPI-missing-data-detection")}\cr
+\verb{vignette("redcapAPI-data-validation)}\cr
+\verb{vignette("redcapAPI-faq)}
+}
 }
 \keyword{datasets}

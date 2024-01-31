@@ -45,6 +45,7 @@ exportRecordsTyped.redcapApiConnection <-
     assignment     = list(label=stripHTMLandUnicode,
                           units=unitsFieldAnnotation),
     filter_empty_rows = TRUE,
+    warn_zero_coded = TRUE,
     ...,
     config         = list(),
     api_param      = list(),
@@ -62,16 +63,19 @@ exportRecordsTyped.redcapApiConnection <-
                           classes = "redcapApiConnection",
                           add = coll)
   
-  .exportRecordsTyped_validateCommonArgument(fields      = fields,
-                                             drop_fields = drop_fields,
-                                             forms       = forms,
-                                             records     = records,
-                                             events      = events, 
-                                             na          = na, 
-                                             validation  = validation, 
-                                             cast        = cast, 
-                                             assignment  = assignment,
-                                             coll        = coll)
+  .exportRecordsTyped_validateCommonArgument(
+    fields          = fields,
+    drop_fields     = drop_fields,
+    forms           = forms,
+    records         = records,
+    events          = events, 
+    na              = na, 
+    validation      = validation, 
+    cast            = cast, 
+    assignment      = assignment,
+    coll            = coll,
+    warn_zero_coded = warn_zero_coded,
+    ...)
   
   checkmate::assert_logical(x = survey, 
                             len = 1, 
@@ -172,12 +176,13 @@ exportRecordsTyped.redcapApiConnection <-
                  type                   = "flat", 
                  exportSurveyFields     = tolower(survey), 
                  exportDataAccessGroups = tolower(dag), 
-                 dateRangeBegin         = format(date_begin, format = "%Y-%m-%d %H:%M:S"), 
-                 dateRangeEnd           = format(date_end,   format = "%Y-%m-%d %H:M%:%S"), 
                  csvDelimiter           = csv_delimiter), 
             vectorToApiBodyList(fields, "fields"), 
             vectorToApiBodyList(events, "events"))
   
+  if(!is.null(date_begin)) body$dateRangeBegin = format(date_begin, format = "%Y-%m-%d %H:%M:%S")
+  if(!is.null(date_end))   body$dateRangeEnd   = format(date_end,   format = "%Y-%m-%d %H:%M:%S")
+
   body <- body[lengths(body) > 0]
   
   Raw <- 
@@ -205,9 +210,7 @@ exportRecordsTyped.redcapApiConnection <-
   if (identical(Raw, data.frame())){
     return(Raw)
   }
-  
-  if(filter_empty_rows) Raw <- filterEmptyRow(Raw, rcon)
-  
+
   if (user_requested_system_fields){
     if (user_requested_only_system_fields){
       Raw <- Raw[-1]
@@ -216,17 +219,22 @@ exportRecordsTyped.redcapApiConnection <-
     unrequested_fields <- REDCAP_SYSTEM_FIELDS[!REDCAP_SYSTEM_FIELDS %in% system_fields_user_requested]
     Raw <- Raw[!names(Raw) %in% unrequested_fields]
   }
-  
+
   # See fieldCastingFunctions.R for definition of .castRecords
-  .castRecords(Raw              = Raw, 
-               Records          = NULL,
-               rcon             = rcon, 
-               na               = na, 
-               validation       = validation, 
-               cast             = cast, 
-               assignment       = assignment, 
-               default_cast     = .default_cast, 
-               default_validate = .default_validate)
+  CastData <- .castRecords(Raw              = Raw, 
+                           Records          = NULL,
+                           rcon             = rcon, 
+                           na               = na, 
+                           validation       = validation, 
+                           cast             = cast, 
+                           assignment       = assignment, 
+                           default_cast     = .default_cast, 
+                           default_validate = .default_validate,
+                           warn_zero_coded  = warn_zero_coded)
+  
+  if(filter_empty_rows) CastData <- filterEmptyRow(CastData, rcon)
+  
+  CastData
 }
 
 
@@ -248,6 +256,7 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                                                        cast          = list(),
                                                        assignment    = list(label=stripHTMLandUnicode,
                                                                             units=unitsFieldAnnotation),
+                                                       warn_zero_coded = TRUE,
                                                        ...){
   
   if (is.numeric(records)) records <- as.character(records)
@@ -261,16 +270,19 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                           classes = "redcapOfflineConnection", 
                           add = coll)
   
-  .exportRecordsTyped_validateCommonArgument(fields = fields, 
-                                             drop_fields = drop_fields, 
-                                             forms = forms, 
-                                             records = records, 
-                                             events = events, 
-                                             na          = na, 
-                                             validation  = validation, 
-                                             cast        = cast, 
-                                             assignment  = assignment,
-                                             coll = coll)
+  .exportRecordsTyped_validateCommonArgument(
+    fields          = fields, 
+    drop_fields     = drop_fields, 
+    forms           = forms, 
+    records         = records, 
+    events          = events, 
+    na              = na, 
+    validation      = validation, 
+    cast            = cast, 
+    assignment      = assignment,
+    coll            = coll,
+    warn_zero_coded = warn_zero_coded,
+    ...)
   
   checkmate::reportAssertions(coll)
   
@@ -278,8 +290,8 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                                .var.name = "rcon$metadata()",
                                add = coll)
   
-  checkmate::assert_data_frame(x = rcon$record(),
-                               .var.name = "rcon$record()",
+  checkmate::assert_data_frame(x = rcon$records(),
+                               .var.name = "rcon$records()",
                                add = coll)
   
   checkmate::reportAssertions(coll)
@@ -339,9 +351,9 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
 
   ###################################################################
   # Raw Data comes from the rcon object for offlineConnections
-  
+
   Raw <- rcon$records()[fields]
-  
+
   if (length(records) > 0)
     Raw <- Raw[Raw[[ rcon$metadata()$field_name[1] ]] %in% records, ]
 
@@ -360,7 +372,7 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
   }
   
   Raw <- filterEmptyRow(Raw, rcon)
-  
+
   ###################################################################
   # Process meta data for useful information
   
@@ -373,7 +385,9 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                cast             = cast, 
                assignment       = assignment, 
                default_cast     = .default_cast, 
-               default_validate = .default_validate)
+               default_validate = .default_validate, 
+               batch_size       = NULL,
+               warn_zero_coded  = warn_zero_coded)
 }
 
 
@@ -391,7 +405,10 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                                                        validation, 
                                                        cast, 
                                                        assignment,
-                                                       coll){
+                                                       coll,
+                                                       warn_zero_coded,
+                                                       ...)
+{
   checkmate::assert_character(x = fields, 
                               any.missing = FALSE, 
                               null.ok = TRUE,
@@ -423,6 +440,7 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
   
   checkmate::assert_list(x = validation, 
                          names = "named", 
+                         null.ok = TRUE,
                          add = coll)
   
   checkmate::assert_list(x = cast, 
@@ -434,7 +452,17 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                          types = "function",
                          add = coll)
   
-
+  checkmate::assert_logical(x = warn_zero_coded,
+                            len = 1,
+                            any.missing = FALSE,
+                            add = coll)
+  
+  add_args <- names(list(...))
+  if("labels" %in% add_args ||
+     "dates"  %in% add_args)
+  {
+    warning("The 'labels' and 'dates' flags passed to exportRecordsTyped are ignored.\nSee documentation for exportRecordsTyped 'cast' argument.\nAlternatively read the vignette(\"redcapAPI-best-practices\") for in depth explanation.")
+  }
 }
 
 
@@ -475,7 +503,8 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                                             fields, 
                                             drop_fields, 
                                             forms, 
-                                            use_original = TRUE)
+                                            use_original = TRUE, 
+                                            include_descriptive = FALSE)
 {
   MetaData <- rcon$metadata()
   
@@ -483,8 +512,11 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
   # We need to wedge them in here or we'll never get them out of the API
   ProjectFields <- rcon$fieldnames()
   
-  MissingFromFields <- MetaData[MetaData$field_type %in% c("calc", 
-                                                           "file"), ]
+  restore_types <- c("calc", 
+                     "file", 
+                     if (include_descriptive) "descriptive" else character(0))
+  
+  MissingFromFields <- MetaData[MetaData$field_type %in% restore_types, ]
   if (nrow(MissingFromFields) > 0){
     # FIXME: We need a test on a project that has no calc or file fields.
     MissingFromFields <- 
@@ -623,16 +655,13 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
                  error_handling = error_handling)
   } 
   
-  if (trimws(as.character(response)) == ""){
-    message("No data found in the project.")
-    return(data.frame())
-  }
+  response <- as.data.frame(response,
+                            colClasses = "character",
+                            sep = csv_delimiter)
   
-  utils::read.csv(text = as.character(response), 
-                  stringsAsFactors = FALSE, 
-                  na.strings = "", 
-                  colClasses = "character", 
-                  sep = csv_delimiter)
+  if (nrow(response) == 0) message("No data found in the project.")
+  
+  response
 }
 
 # .exportRecordsTyped_Batched ---------------------------------------
@@ -649,30 +678,31 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
   if (length(records) == 0)
   {
     target_field <- rcon$metadata()$field_name[1]
+
     record_response <- makeApiCall(rcon, 
                                    body = c(list(content = "record", 
                                                  format = "csv", 
                                                  outputFormat = "csv"), 
                                             vectorToApiBodyList(target_field, 
                                                                 "fields")))
-    
+ 
     if (record_response$status_code != 200){
       redcapError(record_response, 
                    error_handling = error_handling)
     }
     
-    if (trimws(as.character(record_response)) == ""){
+    records <- as.data.frame(record_response, sep = csv_delimiter)
+    
+    if (nrow(records) == 0)
+    {
       message("No data found in the project.")
       return(data.frame())
     }
     
-    records <- utils::read.csv(text = as.character(record_response), 
-                               stringsAsFactors = FALSE, 
-                               na.strings = "", 
-                               sep = csv_delimiter)
-    records <- records[[target_field]]
+    
+    records <- unique(records[[target_field]])
   }
-  
+
   # group is a vector of integers where each integer is repeated up to 
   # batch_size times. Used to separate records into a list where
   # each element has a maximum length of batch_size
@@ -700,13 +730,19 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
 }
 
 
+
+#####################################################################
+# exportBulkRecord                                               ####
+
 #' @name exportBulkRecords
 #' @title A helper function to export multiple records and forms using
 #' a single call.
 #' @description Exports records from multiple REDCap Databases using
 #' multiple calls to [exportRecordsTyped()]
 #'
-#' @inheritParams common-rcon-arg
+#' @param lcon  A named list of connections. The name is used as a prefix for data.frame
+#'              names in the environment specified. It may also be used as a reference from the
+#'              forms argument.
 #' @param forms A named list that is a subset of rcon's names. A specified `rcon`
 #'              will provide a list of forms for repeated calls to `exportRecordsType`.
 #'              If a connection reference is missing it will default to all forms. To override
@@ -723,6 +759,37 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
 #' @param \dots Any additional variables to pass to [exportRecordsTyped()].
 #' @return Will return a named list of the resulting records if `envir` is 
 #'    NULL. Otherwise will assign them to the specified `envir`.
+#'    
+#' @seealso 
+#' ## Other records exporting functions
+#' 
+#' [exportRecordsTyped()], \cr
+#' [exportRecords()], \cr
+#' [exportReports()]
+#' 
+#' ## Field validations and casting
+#' 
+#' [fieldValidationAndCasting()], \cr
+#' [reviewInvalidRecords()]
+#' 
+#' ## Post-processing functionality
+#' 
+#' [recastRecords()], \cr
+#' [guessCast()], \cr
+#' [guessDate()], \cr
+#' [castForImport()], \cr
+#' [mChoiceCast()], \cr
+#' [splitForms()], \cr
+#' [widerRepeated()]
+#' 
+#' ## Vignettes
+#' 
+#' `vignette("redcapAPI-offline-connection")`\cr
+#' `vignette("redcapAPI-casting-data")`\cr
+#' `vignette("redcapAPI-missing-data-detection")`\cr
+#' `vignette("redcapAPI-data-validation)`\cr
+#' `vignette("redcapAPI-faq)`
+#' 
 #' @examples
 #' \dontrun{
 #' unlockREDCap(c(test_conn    = 'TestRedcapAPI',
@@ -758,13 +825,13 @@ exportRecordsTyped.redcapOfflineConnection <- function(rcon,
 #' }
 #' @export
 
-exportBulkRecords <- function(rcon, forms=NULL, envir=NULL, sep="_", post=NULL, ...)
+exportBulkRecords <- function(lcon, forms=NULL, envir=NULL, sep="_", post=NULL, ...)
 {
   if(is.numeric(envir)) envir <- as.environment(envir)
   
   coll <- checkmate::makeAssertCollection()
   
-  checkmate::assert_list(     x       = rcon,
+  checkmate::assert_list(     x       = lcon,
                               types   = "redcapApiConnection",
                               min.len = 1,
                               names   = "named",
@@ -796,7 +863,7 @@ exportBulkRecords <- function(rcon, forms=NULL, envir=NULL, sep="_", post=NULL, 
     forms[is.na(forms)] <- NA_character_ 
     
     checkmate::assert_subset( x       = names(forms),
-                              choices = names(rcon),
+                              choices = names(lcon),
                               add     = coll)
     
     checkmate::assert_list( x       = forms,
@@ -811,9 +878,9 @@ exportBulkRecords <- function(rcon, forms=NULL, envir=NULL, sep="_", post=NULL, 
   if(is.null(forms)) forms <- list()
   
   # For each dataset requested
-  for(i in names(rcon))
+  for(i in names(lcon))
   {
-    conn  <- rcon[[i]]
+    conn  <- lcon[[i]]
     f     <- forms[[i]]
     
     lform <- if(is.null(f))                 conn$instruments()$instrument_name else
@@ -838,3 +905,4 @@ exportBulkRecords <- function(rcon, forms=NULL, envir=NULL, sep="_", post=NULL, 
   
   if(is.null(envir)) dest else list2env(dest, envir=envir)
 }
+

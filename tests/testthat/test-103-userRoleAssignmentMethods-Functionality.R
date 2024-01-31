@@ -12,6 +12,10 @@ test_that(
     # otherwise we run the risk of cutting off access a user running the
     # test suite would need to continue testing.
     the_user <- EXPENDABLE_USER
+    
+    # Delete any existing roles if script crashed previously
+    for(i in rcon$user_roles()$unique_role_name)
+      if(!is.na(i)) deleteUserRoles(rcon, i)
 
     # Make sure you include api_import and api_export rights in the
     # role so you don't lock someone out of testing.
@@ -33,9 +37,9 @@ test_that(
                  unique_role_name = the_role,
                  stringsAsFactors = FALSE)
 
-    expect_message(importUserRoleAssignments(rcon,
-                                             data = ImportAssignmentTest),
-                   "User-Role Assignments Added/Updated: 1")
+    n_imported <- importUserRoleAssignments(rcon,
+                                            data = ImportAssignmentTest)
+    expect_equal(n_imported, "1")
 
     CompareFrame <- rcon$user_role_assignment()
     CompareFrame <- CompareFrame[CompareFrame$username == the_user, ]
@@ -48,17 +52,17 @@ test_that(
                  unique_role_name = NA_character_,
                  stringsAsFactors = FALSE)
     
-    expect_message(importUserRoleAssignments(rcon, 
-                                             data = ImportAssignmentTest),
-                   "User-Role Assignments Added/Updated: 1")
+    n_imported <- importUserRoleAssignments(rcon, 
+                                             data = ImportAssignmentTest)
+    expect_equal(n_imported, "1")
     
     CompareFrame <- rcon$user_role_assignment()
     CompareFrame <- CompareFrame[CompareFrame$username == the_user, ]
     
     expect_true(is.na(CompareFrame$unique_role_name))
 
-    expect_message(deleteUserRoles(rcon, the_role), 
-                   "User Roles Deleted: 1")
+    n_deleted <- deleteUserRoles(rcon, the_role)
+    expect_equal(n_deleted, "1")
   }
 )
 

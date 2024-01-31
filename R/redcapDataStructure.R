@@ -51,6 +51,18 @@ REDCAP_SYSTEM_FIELDS <- c("redcap_event_name",
                           "redcap_repeat_instrument", 
                           "redcap_repeat_instance")
 
+#' @rdname redcapDataStructures
+#' @export
+
+# These are the purposes that can be used when using 
+# createRedcapProject
+
+REDCAP_PROJECT_PURPOSE <- c("Practice/just for fun", 
+                            "Other", 
+                            "Research", 
+                            "Quality Improvement", 
+                            "Operational Support")
+
 # Arms --------------------------------------------------------------
 # Arms - Data Frame Structure
 
@@ -291,7 +303,8 @@ REDCAP_REPEAT_INSTRUMENT_STRUCTURE <-
 # Users -------------------------------------------------------------
 # Users Structure
 
-REDCAP_USER_STRUCTURE <- 
+redcapUserStructure <- function(version)
+{
   data.frame(username = character(0),
              email = character(0),
              firstname = character(0),
@@ -315,6 +328,7 @@ REDCAP_USER_STRUCTURE <-
              data_quality_execute = character(0),
              api_export = character(0),
              api_import = character(0),
+             api_modules=if(is.null(version) || utils::compareVersion(version, "14.0.3") < 0) NULL else character(0),
              mobile_app = character(0),
              mobile_app_download_data = character(0),
              record_create = character(0),
@@ -330,6 +344,7 @@ REDCAP_USER_STRUCTURE <-
              forms = character(0),
              forms_export = character(0), 
              stringsAsFactors = FALSE)
+}
 
 # These are variables in the Users table coded as 0 = No Access, 1 = Access
 REDCAP_USER_TABLE_ACCESS_VARIABLES <- 

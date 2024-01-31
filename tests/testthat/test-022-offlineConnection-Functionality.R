@@ -371,6 +371,17 @@ test_that(
   }
 )
 
+test_that(
+  "External Codings load from a list", 
+  {
+    EC <- list(var1 = c(label = "abc"))
+    
+    roff <- offlineConnection(external_coding = EC)
+    
+    expect_true(roff$has_externalCoding())
+  }
+)
+
 
 #####################################################################
 # Functionality - Files Downloaded from REDCap UI
@@ -444,7 +455,7 @@ test_that(
     roff <- 
       expect_warning(
         offlineConnection(users = file), 
-        "as expected. [{]email, firstname, lastname, alerts, mobile_app, mobile_app_download_data[}]")
+        "may not operate as expected")
     
     expect_true(roff$has_users())
   }
@@ -471,7 +482,7 @@ test_that(
     file <- file.path(filedir, "TestRedcapAPI_UserRoleAssignments.csv")
     
     roff <- 
-        offlineConnection(user_role_assignment = file)
+        expect_warning(offlineConnection(user_role_assignment = file))
     
     expect_true(roff$has_user_role_assignment())
   }
@@ -484,7 +495,7 @@ test_that(
     file <- file.path(filedir, "TestRedcapAPI_DAGs.csv")
     
     roff <- 
-      expect_warning(offlineConnection(dags = file))
+      offlineConnection(dags = file)
     
     expect_true(roff$has_dags())
   }
@@ -513,7 +524,7 @@ test_that(
 # test_that(
 #   "Version loads using a file from the UI", 
 #   {
-#     # There is no file that can be dowloaded from the UI
+#     # There is no file that can be downloaded from the UI
 #   }
 # )
 

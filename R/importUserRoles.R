@@ -93,9 +93,16 @@ importUserRoles.redcapApiConnection <- function(rcon,
                  error_handling = error_handling)
   }
   
-  if (refresh){
-    rcon$refresh_user_roles()
+  if (refresh)
+  {
+    # From REDCap 14.0.2 forward, caching can sometimes catch an NA role pre-definition
+    roles <- c(NA)
+    while(length(roles > 0) && any(is.na(roles)))
+    {
+      rcon$refresh_user_roles()
+      roles <- rcon$user_roles()$unique_role_name
+    }
   }
   
-  message(sprintf("User Roles Added/Modified: %s", as.character(response)))
+  invisible(as.character(response))
 }

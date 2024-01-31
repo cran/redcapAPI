@@ -109,7 +109,7 @@ importMetaData.redcapApiConnection <- function(rcon,
 
   .isPropertyOnAppropriateField(field_name = data$field_name, 
                                 field_type = data$field_type, 
-                                permissible_field_type = c("dropdown", "radio", "checkbox", "slider", "calc"),
+                                permissible_field_type = c("dropdown", "radio", "checkbox", "slider", "calc", "text"),
                                 property = data$select_choices_or_calculations, 
                                 property_name = "select_choices_or_calculations", 
                                 coll = coll)
@@ -135,8 +135,6 @@ importMetaData.redcapApiConnection <- function(rcon,
   
   response <- as.character(response)
   
-  message(sprintf("Fields Imported: %s", response))
-  
   if (refresh){
     if (rcon$has_metadata()){
       rcon$refresh_metadata()
@@ -146,6 +144,8 @@ importMetaData.redcapApiConnection <- function(rcon,
       rcon$refresh_instruments()
     }
   }
+  
+  invisible(as.character(response))
 }
 
 #####################################################################

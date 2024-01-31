@@ -6,7 +6,7 @@
 a single call.}
 \usage{
 exportBulkRecords(
-  rcon,
+  lcon,
   forms = NULL,
   envir = NULL,
   sep = "_",
@@ -15,7 +15,9 @@ exportBulkRecords(
 )
 }
 \arguments{
-\item{rcon}{A \code{redcapConnection} object.}
+\item{lcon}{A named list of connections. The name is used as a prefix for data.frame
+names in the environment specified. It may also be used as a reference from the
+forms argument.}
 
 \item{forms}{A named list that is a subset of rcon's names. A specified \code{rcon}
 will provide a list of forms for repeated calls to \code{exportRecordsType}.
@@ -76,5 +78,39 @@ exportBulkRecords(
 # The environment now contains the data.frames: `test.form1`, `test.form2`, `sand`.
 # Each of these were retrieved, possibly using the forms argument and all were
 # post processed in the same manner as specified by `post`.
+}
+}
+\seealso{
+\subsection{Other records exporting functions}{
+
+\code{\link[=exportRecordsTyped]{exportRecordsTyped()}}, \cr
+\code{\link[=exportRecords]{exportRecords()}}, \cr
+\code{\link[=exportReports]{exportReports()}}
+}
+
+\subsection{Field validations and casting}{
+
+\code{\link[=fieldValidationAndCasting]{fieldValidationAndCasting()}}, \cr
+\code{\link[=reviewInvalidRecords]{reviewInvalidRecords()}}
+}
+
+\subsection{Post-processing functionality}{
+
+\code{\link[=recastRecords]{recastRecords()}}, \cr
+\code{\link[=guessCast]{guessCast()}}, \cr
+\code{\link[=guessDate]{guessDate()}}, \cr
+\code{\link[=castForImport]{castForImport()}}, \cr
+\code{\link[=mChoiceCast]{mChoiceCast()}}, \cr
+\code{\link[=splitForms]{splitForms()}}, \cr
+\code{\link[=widerRepeated]{widerRepeated()}}
+}
+
+\subsection{Vignettes}{
+
+\code{vignette("redcapAPI-offline-connection")}\cr
+\code{vignette("redcapAPI-casting-data")}\cr
+\code{vignette("redcapAPI-missing-data-detection")}\cr
+\verb{vignette("redcapAPI-data-validation)}\cr
+\verb{vignette("redcapAPI-faq)}
 }
 }

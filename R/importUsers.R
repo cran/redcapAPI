@@ -61,7 +61,7 @@ importUsers.redcapApiConnection <- function(rcon,
   form_export_names <- sprintf("%s_export_access", form_names)
   
   checkmate::assert_subset(x = names(data), 
-                           choices = c(names(REDCAP_USER_STRUCTURE), 
+                           choices = c(names(redcapUserStructure(rcon$version())), 
                                        form_access_names, 
                                        form_export_names, 
                                        "data_export"), 
@@ -115,7 +115,7 @@ importUsers.redcapApiConnection <- function(rcon,
     rcon$refresh_users()
   }
   
-  message(sprintf("Users Added/Modified: %s", as.character(response)))
+  invisible(as.character(response))
 }
 
 

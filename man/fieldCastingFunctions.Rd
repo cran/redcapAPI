@@ -9,7 +9,14 @@
 \alias{mChoiceCast}
 \title{Functions for Casting Fields After Export (Post Processing)}
 \usage{
-recastRecords(data, rcon, fields, cast = list(), suffix = "")
+recastRecords(
+  data,
+  rcon,
+  fields,
+  cast = list(),
+  suffix = "",
+  warn_zero_coded = TRUE
+)
 
 castForImport(
   data,
@@ -17,7 +24,8 @@ castForImport(
   fields = NULL,
   na = list(),
   validation = list(),
-  cast = list()
+  cast = list(),
+  warn_zero_coded = TRUE
 )
 
 guessCast(
@@ -58,7 +66,9 @@ multiple choice fields. Fields of class \code{mChoice} are quietly skipped.}
 \item{cast}{A named \code{list} of user specified class casting functions. The
 same named keys are supported as the na argument. The function will be
 provided the variables (x, field_name, coding). The function must return a
-vector of logical matching the input length. See \code{\link[=fieldValidationAndCasting]{fieldValidationAndCasting()}}}
+vector of logical matching the input length. The cast should match the validation,
+if one is using \code{raw_cast}, then \code{validation=skip_validation} is likely
+the desired intent. See \code{\link[=fieldValidationAndCasting]{fieldValidationAndCasting()}}}
 
 \item{suffix}{\code{character(1)}. An optional suffix to provide if
 the recoded variables should be returned as new columns. For example,
@@ -67,14 +77,16 @@ the result will have one column with the coded values
 (\code{forklift_brand}) and one column with the labeled values
 (\code{forklift_brand_labeled}).}
 
+\item{warn_zero_coded}{logical(1). Turn on or off warnings about zero coded fields. Default is TRUE.}
+
 \item{na}{A named \code{list} of user specified functions to determine if the
 data is NA. This is useful when data is loaded that has coding for NA, e.g.
 -5 is NA. Keys must correspond to a truncated REDCap field type, i.e.
-{date_, datetime_, datetime_seconds_, time_mm_ss, time_hh_mm_ss, time, float,
+date_, datetime_, datetime_seconds_, time_mm_ss, time_hh_mm_ss, time, float,
 number, calc, int, integer, select, radio, dropdown, yesno, truefalse,
-checkbox, form_complete, sql}. The function will be provided the variables
-(x, field_name, coding). The function must return a vector of logicals
-matching the input. It defaults to \code{\link[=isNAorBlank]{isNAorBlank()}} for all
+checkbox, form_complete, sql, system. The function will be provided the
+variables (x, field_name, coding). The function must return a vector of
+logicals matching the input. It defaults to \code{\link[=isNAorBlank]{isNAorBlank()}} for all
 entries.}
 
 \item{validation}{A named \code{list} of user specified validation functions. The
@@ -133,13 +145,13 @@ to be loaded.
 A zero-coded check field is a field of the REDCap type \code{checkbox} that has
 a coding definition of \verb{0, [label]}. When exported, the field names for
 these fields is \verb{[field_name]___0}. As in other checkbox fields, the
-raw data output returns binary values where 0 represent and unchecked
+raw data output returns binary values where 0 represent an unchecked
 box and 1 represents a checked box. For zero-coded checkboxes, then, a
 value of 1 indicates that 0 was selected.
 
 This coding rarely presents a problem when casting from raw values
 (as is done in \code{exportRecordsTyped}). However, casting from coded or
-labeled values can be problematic, as it In this case, it becomes
+labeled values can be problematic. In this case, it becomes
 indeterminate from context if the intent of \code{0} is 'false' or the coded
 value '0' ('true') ...
 
@@ -182,8 +194,9 @@ castForImport(Records,
 
 
 # Using guessCast
-exportRecordsTyped(rcon, 
-                           cast = raw_cast) |> 
+exportRecordsTyped(rcon,
+                   validation=skip_validation,
+                   cast = raw_cast) |> 
   guessCast(rcon, 
             validation=valRx("^[0-9]{1,4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$"), 
             cast=as.Date,
@@ -211,5 +224,13 @@ exportRecordsTyped(rcon) |>
 
 \code{\link[=splitForms]{splitForms()}}, \cr
 \code{\link[=widerRepeated]{widerRepeated()}}
+}
+
+\subsection{Vignettes}{
+
+\code{vignette("redcapAPI-offline-connection", package = "redcapAPI")}\cr
+\code{vignette("redcapAPI-casting-data")}\cr
+\code{vignette("redcapAPI-missing-data-detection")}\cr
+\verb{vignette("redcapAPI-data-validation)}
 }
 }

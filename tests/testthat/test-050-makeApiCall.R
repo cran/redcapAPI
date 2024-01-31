@@ -1,11 +1,15 @@
 context("makeApiCall Argument Validation")
 
+library(mockery)
+library(curl)
+
 # Note: This file will only test that arguments fail appropriately, or
 # that submethods perform as expected. the makeApiCall function 
 # is ubiquitous throughout the package. If we break it, it's bound
 # to pop up in other tests.
 
 # Test .makeApiCall_validateResponse
+
 
 test_that(
   ".makeApiCall_isRetryEligible returns appropriate logical values", 
@@ -38,6 +42,63 @@ test_that(
 )
 
 test_that(
+  "makeApiCall handles curl timeout with translated error",
+  {
+    h <- new_handle(timeout = 1L)
+    e <- structure(
+      list(message = "Timeout was reached: [redcap.vanderbilt.edu] Operation timed out after 300001 milliseconds with 0 bytes received", 
+           call = curl_fetch_memory("https://redcap.vanderbilt.edu/api/params", handle = h)
+      ),
+      class = c("simpleError", "error", "condition")
+    )
+    
+    rcon$set_retries(1)
+    x <- 1
+    stub(makeApiCall, "httr::POST", function(...)
+      if(x==1) { x <<- 2; stop(e) } else {goodVersionPOST})
+    
+    response <- makeApiCall(rcon, 
+                            body = list(content = "version", 
+                                        format = "csv"))
+    
+    expect_error(redcapError(response, "A network error has occurred"))
+    rcon$set_retries(5)
+  }
+)
+
+test_that(
+  "makeApiCall recovers from curl timeout gracefully",
+  {
+    h <- new_handle(timeout = 1L)
+    goodVersionPOST <- structure(
+      list(url = "https://redcap.vanderbilt.edu/api/",
+           status_code = 200L,
+           content = charToRaw("13.10.3"),
+           headers=structure(list(
+             'Content-Type'="text/csv; charset=utf-8"
+           )),
+           class = c("insensitive", "list")),
+      class = "response")
+    e <- structure(
+           list(message = "Timeout was reached: [redcap.vanderbilt.edu] Operation timed out after 300001 milliseconds with 0 bytes received", 
+                call = curl_fetch_memory("https://redcap.vanderbilt.edu/api/params", handle = h)
+                ),
+           class = c("simpleError", "error", "condition")
+    )
+    
+    x <- 1
+    stub(makeApiCall, "httr::POST", function(...)
+      if(x==1) { x <<- 2; stop(e) } else {goodVersionPOST})
+    
+    response <- makeApiCall(rcon, 
+                            body = list(content = "version", 
+                                        format = "csv"))
+    
+    expect_true(response$status==200)
+  }
+)
+
+test_that(
   ".makeApiCall_retryMessage gives appropriate messages", 
   {
     response <- makeApiCall(rcon, 
@@ -65,7 +126,6 @@ test_that(
     
     expect_error(redcapError(response, "null"), 
                  "A network error has occurred. This can happen when too much data is")
-  
     
     response$content <- charToRaw("Timeout was reached: [redcap.vanderbilt.edu] SSL connection timeout")
     
@@ -112,5 +172,28 @@ test_that(
     expect_error(makeApiCall(rcon, 
                              config = list(1, 2, 3)), 
                  "'config': Must have names")
+  }
+)
+
+test_that(
+  "as.data.frame.response handles invalid encoded characters",
+  {
+    x <- list(content=charToRaw("fa\xE7il,joe\n1,2\xE7\n3,4"))
+    x[['headers']] <- list('Content-Type'='text/csv; charset=utf-8')
+    class(x) <- c("response","list")
+    expect_warning({y <- redcapAPI:::as.data.frame.response(x)},
+                  "invalid characters")
+    expect_equal(
+      y,
+      data.frame(fa.il=as.integer(c(1,3)), joe=c("2\U25a1","4"))
+    )
+    
+    x[['headers']] <- list('Content-Type'='text/csv') # defaults to latin
+    expect_silent({y <- redcapAPI:::as.data.frame.response(x)})
+    expect_equal(
+      y,
+      data.frame(façil=as.integer(c(1,3)), joe=c("2ç","4"))
+    )
+    
   }
 )

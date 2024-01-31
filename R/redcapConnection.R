@@ -24,10 +24,8 @@
 #'   
 #' @details
 #' `redcapConnection` objects will retrieve and cache various forms of 
-#' project information. This can make metadata, arms, dags, events, instruments, 
-#' fieldnames, arm-event mappings, users, version, project information, 
-#' fileRepository, and repeating instruments available directly from the 
-#' `redcapConnection` object. The retrieval of these objects 
+#' project information. This can make metadata, arms, events, etc. available 
+#' directly from the `redcapConnection` object. The retrieval of these objects
 #' uses the default values of the respective export functions (excepting the 
 #' file repository, which uses `recursive = TRUE`). 
 #' 
@@ -58,11 +56,18 @@
 #' * `projectInformation`
 #' * `version`
 #' * `fileRepository`
+#' * `externalCoding`
 #' 
 #' There is also a `flush_all` and `refresh_all` method that will purge
 #' the entire cache and refresh the entire cache, respectively.
 #' 
-#' The `redcapConnection` object also stores the user preferences for 
+#' The `externalCoding` elements relate to the code-label mappings of text fields 
+#' with the external validation types (such as `sql` fields or text fields 
+#' with BioPortal Ontology modules enabled). 
+#' 
+#' ## Specific to API Connections
+#' 
+#' The `redcapApiConnection` object also stores the user preferences for 
 #' handling repeated attempts to call the API. In the event of a timeout 
 #' error or server unavailability, these settings allow a system pause before
 #' attempting another API call. In the event all of the retries fail, the 
@@ -78,12 +83,50 @@
 #' Additional Curl option can be set in the `config` argument.  See the documentation
 #' for [httr::config()] and [httr::httr_options()] for more Curl options.
 #' 
+#' ## Specific to Offline Connections
+#' 
+#' "Offline connections" are a tool designed to provide the users without 
+#' API privileges with at least a subset of the functionality available to 
+#' API users. The offline connections are typically constructed from the 
+#' comma separated value (CSV) files downloaded from the REDCap user 
+#' interface. Alternatively, data frames may be provided with the 
+#' necessary data.
+#' 
+#' Not all of the components of an offline connection are needed for most 
+#' operations. Rather, the object was built to accept the same components
+#' available to the `redcapApiConnection` in order to provide a consistent
+#' interface and simplify future development.
+#' 
+#' The meta data will be required for nearly all operations. For 
+#' validating and casting data, the `records` data must be provided, and 
+#' works best if the data are the raw, unlabeled data downloaded from the
+#' REDCap user interface.
+#' 
+#' Other components that may prove useful when casting records are the 
+#' url, version, events (if the project is longitudinal), and a subset 
+#' of the project information. The user is encouraged to review the 
+#' vignette for working with offline connections for more details.
+#' 
+#' With offline connections, the refresh methods have an important difference.
+#' The user may pass the refresh method a file path or data frame which 
+#' will be used to replace the existing component. See examples. 
+#' 
+#' @seealso 
+#' For establishing connections using secure token storage. \cr
+#' [unlockREDCap()] \cr
+#' `vignette("redcapAPI-getting-started-connecting", package = "redcapAPI")`\cr
+#' 
+#' For working with offline connections.
+#' `vignette("redcapAPI-offline-connection", package = "redcapAPI")`\cr
+#' \cr
+#' To prepare data for an offline user, see [preserveProject()] and 
+#' [readPreservedProject()].
+#' 
+#' 
 #' @examples
 #' \dontrun{
-#' rcon <- redcapConnection(url=[YOUR_REDCAP_URL], token=[API_TOKEN])
-#' 
-#' options(redcap_api_url=[YOUR_REDCAP_URL])
-#' rcon <- redcapConnection(token=[API_TOKEN])
+#' rcon <- redcapConnection(url = [YOUR_REDCAP_URL], 
+#'                          token = [API_TOKEN])
 #' 
 #' exportRecords(rcon)
 #' 
@@ -96,6 +139,31 @@
 #' # remove a cached value for fieldnames
 #' rcon$flush_fieldnames()
 #' rcon$has_fieldnames()
+#' 
+#' 
+#' # Using offline connections
+#' 
+#' meta_data_file <- "path/to/meta_data_file.csv"
+#' records_file <- "path/to/records_file.csv"
+#' events_file <- "path/to/events_file.csv"
+#' 
+#' ProjectInfo <- data.frame(project_id = 12345, 
+#'                           is_longitudinal = 1)
+#' 
+#' off_conn <- offlineConnection(meta_data = meta_data_file, 
+#'                               records = records_file,
+#'                               project_info = ProjectInfo, 
+#'                               version = [YOUR_REDCAP_VERSION_NUMBER], 
+#'                               url = [YOUR_REDCAP_URL])
+#'                               
+#' off_conn$metadata()
+#' off_conn$records()
+#' off_conn$projectInformation()
+#' off_conn$version()
+#' 
+#' # Add or replace the data in the events component.
+#' off_conn$refresh_events(events_file)
+#' off_conn$events()
 #' }
 #' 
 #' @export
@@ -152,13 +220,14 @@ redcapConnection <- function(url = getOption('redcap_api_url'),
   this_dag_assign <- NULL
   this_user_role <- NULL
   this_user_role_assign <- NULL
+  this_ec <- NULL #external coding
   
   rtry <- retries
   rtry_int <- rep(retry_interval, 
                   length.out = rtry)
   rtry_q <- retry_quietly
   
-  getter <- function(export){
+  getter <- function(export, ...){
     switch(export, 
            "metadata" = exportMetaData(rc), 
            "arm" = exportArms(rc), 
@@ -175,6 +244,7 @@ redcapConnection <- function(url = getOption('redcap_api_url'),
            "dagAssign" = exportUserDagAssignments(rc),
            "userRole" = exportUserRoles(rc),
            "userRoleAssign" = exportUserRoleAssignments(rc),
+           "externalCoding" = exportExternalCoding(rc, ...),
            NULL)
   }
   
@@ -259,6 +329,11 @@ redcapConnection <- function(url = getOption('redcap_api_url'),
       flush_dag_assignment = function() this_dag_assign <<- NULL, 
       refresh_dag_assignment = function() this_dag_assign <<- getter("dagAssign"),
       
+      externalCoding = function(...) {if (is.null(this_ec)) this_ec <<- getter("externalCoding", ...); this_ec}, 
+      has_externalCoding = function() !is.null(this_ec), 
+      flush_externalCoding = function() this_ec <<- NULL, 
+      refresh_externalCoding = function(...) this_ec <<- getter("externalCoding", ...),
+      
       flush_all = function(){ 
         this_metadata <<- 
           this_arm <<- this_event <<- 
@@ -267,7 +342,8 @@ redcapConnection <- function(url = getOption('redcap_api_url'),
           this_user <<- this_user_role <<- this_user_role_assign <<-
           this_dag <<- this_dag_assign <<-
           this_project <<- this_version <<-
-          this_fileRepository <<-  
+          this_fileRepository <<- 
+          this_ec <<-
           NULL}, 
       
       refresh_all = function(){
@@ -285,6 +361,7 @@ redcapConnection <- function(url = getOption('redcap_api_url'),
         this_project <<- getter("project")
         this_version <<- getter("version")
         this_fileRepository <<- getter("fileRepo")
+        this_ec <<- getter("externalCoding")
         
       },
       
@@ -339,7 +416,8 @@ print.redcapApiConnection <- function(x, ...){
       sprintf("DAG Assignment       : %s", is_cached(x$has_dag_assignment())),
       sprintf("Project Info         : %s", is_cached(x$has_projectInformation())),
       sprintf("Version              : %s", is_cached(x$has_version())),  
-      sprintf("File Repo            : %s", is_cached(x$has_fileRepository())))
+      sprintf("File Repo            : %s", is_cached(x$has_fileRepository())), 
+      sprintf("External Coding      : %s", is_cached(x$has_externalCoding())))
   cat(output, sep = "\n")
 }
 
@@ -371,15 +449,23 @@ print.redcapApiConnection <- function(x, ...){
 #' @param dag_assignment Either a `character` giving the file from which the
 #'   Data Access Group Assignments can be read, or a `data.frame`.
 #' @param project_info Either a `character` giving the file from which the 
-#'   Project Information can be read, or a `data.frame`.
-#' @param version Either a `character` giving the file from which the 
-#'   version can be read, or a `data.frame`.
+#'   Project Information can be read, or a `data.frame`. See Details.
+#' @param version `character(1)` giving the instance's REDCap version number.
 #' @param file_repo Either a `character` giving the file from which the 
 #'   File Repository Listing can be read, or a `data.frame`.
 #' @param records Either a `character` giving the file from which the 
 #'   Records can be read, or a `data.frame`. This should be the raw 
 #'   data as downloaded from the API, for instance. Using labeled or formatted
 #'   data is likely to result in errors when passed to other functions.
+#' @param external_coding Named `list` of named `character` vectors or a 
+#'   `character` giving the file from which the external coding may 
+#'   be read. The list is generally obtained from the API using 
+#'   [exportExternalCoding()]. The name of the list element should be 
+#'   a field name in the data that is of type `bioportal` or `sql`. 
+#'   The named vectors are code-label pairings where the value of the 
+#'   vector is the code and the name is the label. If passing a file name, 
+#'   it should be a file with the list saved via `dput`. 
+#'   
 #' @export
 
 offlineConnection <- function(meta_data = NULL, 
@@ -397,7 +483,9 @@ offlineConnection <- function(meta_data = NULL,
                               project_info = NULL, 
                               version = NULL, 
                               file_repo = NULL,
-                              records = NULL){
+                              records = NULL, 
+                              url = NULL, 
+                              external_coding = list()){
   ###################################################################
   # Argument Validation                                          ####
   coll <- checkmate::makeAssertCollection()
@@ -533,15 +621,10 @@ offlineConnection <- function(meta_data = NULL,
     add = coll
   )
   
-  checkmate::assert(
-    checkmate::check_character(x = version, 
-                               len = 1, 
-                               null.ok = TRUE), 
-    checkmate::check_data_frame(x = version, 
-                                null.ok = TRUE), 
-    .var.name = "version", 
-    add = coll
-  )
+  checkmate::assert_character(x = version, 
+                              len = 1, 
+                              null.ok = TRUE, 
+                              add = coll)
   
   checkmate::assert(
     checkmate::check_character(x = file_repo, 
@@ -562,6 +645,33 @@ offlineConnection <- function(meta_data = NULL,
     .var.name = "records", 
     add = coll
   )
+  
+  checkmate::assert_character(x = url, 
+                              len = 1, 
+                              null.ok = TRUE,
+                              add = coll)
+  
+  checkmate::assert(
+    checkmate::check_list(x = external_coding,
+                          types = "character",
+                          names = "named", 
+                          null.ok = TRUE), 
+    checkmate::check_character(x = external_coding, 
+                               len = 1, 
+                               null.ok = TRUE), 
+    .var.name = "external_coding", 
+    add = coll
+  )
+  
+  checkmate::reportAssertions(coll)
+  
+  if (is.list(external_coding) && length(external_coding) > 0){
+    for (i in seq_along(external_coding)){
+      checkmate::assert_character(x = external_coding[[i]], 
+                                  names = "named", 
+                                  add = coll)
+    }
+  }
   
   checkmate::reportAssertions(coll)
   
@@ -638,6 +748,11 @@ offlineConnection <- function(meta_data = NULL,
                                   add = coll)
   }
   
+  if (is.character(external_coding)){
+    checkmate::assert_file_exists(x = external_coding, 
+                                  add = coll)
+  }
+  
   checkmate::reportAssertions(coll)
   
   ###################################################################
@@ -666,7 +781,7 @@ offlineConnection <- function(meta_data = NULL,
   
   this_user <- 
     validateRedcapData(data = .offlineConnection_readFile(users), 
-                       redcap_data = REDCAP_USER_STRUCTURE)
+                       redcap_data = redcapUserStructure(version))
   this_user_roles <- 
     validateRedcapData(data = .offlineConnection_readFile(user_roles), 
                        redcap_data = REDCAP_USER_ROLE_STRUCTURE)
@@ -685,6 +800,13 @@ offlineConnection <- function(meta_data = NULL,
   this_version <- version
 
   this_fileRepository <- .offlineConnection_readFile(file_repo)
+  
+  this_ec <- 
+    if (is.list(external_coding)){
+      external_coding
+    } else {
+      eval(parse(file = external_coding))
+    }
 
   
   this_instrument <- 
@@ -703,7 +825,7 @@ offlineConnection <- function(meta_data = NULL,
   # Redcap Connection object                                     ####
   rc <- 
     list(
-      url = NULL, 
+      url = url, 
       token = NULL, 
       config = NULL, 
       
@@ -769,7 +891,7 @@ offlineConnection <- function(meta_data = NULL,
       has_users = function() !is.null(this_user), 
       flush_users = function() this_user <<- NULL, 
       refresh_users = function(x) {this_user <<- validateRedcapData(data = .offlineConnection_readFile(x), 
-                                                                    redcap_data = REDCAP_USER_STRUCTURE)}, 
+                                                                    redcap_data = redcapUserStructure(this_version))}, 
       
       user_roles = function(){ this_user_roles }, 
       has_user_roles = function() !is.null(this_user_roles), 
@@ -816,10 +938,16 @@ offlineConnection <- function(meta_data = NULL,
       flush_records = function() this_record <<- NULL,
       refresh_records = function(x) {this_record <<- .offlineConnection_readFile(records)},
       
+      externalCoding = function(...){ this_ec }, 
+      has_externalCoding = function() !is.null(this_ec), 
+      flush_externalCoding = function() this_ec <<- NULL,
+      refresh_externalCoding = function(x, ...) {this_ec <<- x},
+      
       flush_all = function(){ 
         this_metadata <<- this_arm <<- this_event <<- this_fieldname <<- 
           this_mapping <<- this_user <<- this_version <<- this_project <<- 
-          this_instrument <<- this_fileRepository <<- this_repeat <<- NULL}, 
+          this_instrument <<- this_fileRepository <<- this_repeat <<- 
+          this_ec <<- NULL}, 
       
       refresh_all = function(){} # provided only to match the redcapApiConnection. Has no effect
     )
@@ -850,7 +978,8 @@ print.redcapOfflineConnection <- function(x, ...){
         sprintf("DAG Assigment         : %s", is_cached(x$has_dag_assignment())),
         sprintf("Project Info          : %s", is_cached(x$has_projectInformation())), 
         sprintf("Version               : %s", is_cached(x$has_version())), 
-        sprintf("File Repo             : %s", is_cached(x$has_fileRepository())))
+        sprintf("File Repo             : %s", is_cached(x$has_fileRepository())), 
+        sprintf("External Coding       : %s", is_cached(x$has_externalCoding())))
     cat(output, sep = "\n")
 }
 
