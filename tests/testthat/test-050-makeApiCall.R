@@ -3,6 +3,9 @@ context("makeApiCall Argument Validation")
 library(mockery)
 library(curl)
 
+url     <- rcon$url   # Should not be required but it is
+
+
 # Note: This file will only test that arguments fail appropriately, or
 # that submethods perform as expected. the makeApiCall function 
 # is ubiquitous throughout the package. If we break it, it's bound
@@ -16,6 +19,24 @@ test_that(
     expect_error(
       makeApiCall(rcon,  body = list(format = "csv"), url=TRUE),
       "url.*Must be of type 'character'")
+  }
+)
+
+test_that(
+  "makeApiCall will not allow a non-logical redirect parameter",
+  {
+    expect_error(
+      makeApiCall(rcon,  body = list(format = "csv"), url='xyz.com', redirect=23),
+      "redirect.*Must be of type 'logical'")
+  }
+)
+
+test_that(
+  "makeApiCall will not allow more than one redirect parameter",
+  {
+    expect_error(
+      makeApiCall(rcon,  body = list(format = "csv"), url='xyz.com', redirect=c(TRUE, TRUE)),
+      "redirect.*Must have length 1")
   }
 )
 

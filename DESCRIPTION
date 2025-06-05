@@ -1,7 +1,7 @@
 Package: redcapAPI
 Type: Package
 Title: Interface to 'REDCap'
-Version: 2.10.0
+Version: 2.11.0
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
            role = c("ctb", "aut")),
@@ -22,7 +22,9 @@ Authors@R: c(
     person("Cole", "Beck", role = "ctb"),
     person("Bradley", "Johnson", role="ctb"),
     person("Philip", "Chase", role="ctb"),
-    person("Paddy", "Tobias", role = "ctb"))
+    person("Paddy", "Tobias", role = "ctb"),
+    person("Michael", "Chirico", role = "ctb"),
+    person("William", "Sharp", role="ctb"))
 Maintainer: Shawn Garbett <shawn.garbett@vumc.org>
 Description: Access data stored in 'REDCap' databases using the Application
     Programming Interface (API).  'REDCap' (Research Electronic Data CAPture;
@@ -37,17 +39,18 @@ Description: Access data stored in 'REDCap' databases using the Application
 License: GPL-2
 Depends: R (>= 3.5.0)
 Imports: checkmate, chron, curl, jsonlite, labelVector, lubridate,
-        mime, keyring, getPass, yaml
+        mime, shelter (>= 0.2.1)
 LazyLoad: yes
-Suggests: testthat (>= 3.0.0), Hmisc, rstudioapi, mockery
+Suggests: testthat (>= 3.0.0), Hmisc, mockery
 URL: https://github.com/vubiostat/redcapAPI
 BugReports: https://github.com/vubiostat/redcapAPI/issues
 Encoding: UTF-8
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2024-10-17 15:47:34 UTC; garbetsp
+Packaged: 2025-06-04 13:05:59 UTC; garbetsp
 Author: Benjamin Nutter [ctb, aut],
-  Shawn Garbett [cre, ctb] (<https://orcid.org/0000-0003-4079-5621>),
+  Shawn Garbett [cre, ctb] (ORCID:
+    <https://orcid.org/0000-0003-4079-5621>),
   Savannah Obregon [ctb],
   Thomas Obadia [ctb],
   Marcus Lehr [ctb],
@@ -62,6 +65,8 @@ Author: Benjamin Nutter [ctb, aut],
   Cole Beck [ctb],
   Bradley Johnson [ctb],
   Philip Chase [ctb],
-  Paddy Tobias [ctb]
+  Paddy Tobias [ctb],
+  Michael Chirico [ctb],
+  William Sharp [ctb]
 Repository: CRAN
-Date/Publication: 2024-10-17 16:20:01 UTC
+Date/Publication: 2025-06-05 07:50:02 UTC
