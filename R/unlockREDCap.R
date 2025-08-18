@@ -35,6 +35,7 @@
 #' \dontrun{
 #' connectAndCheck("<AN API KEY HERE>", "<REDCAP URL HERE>")
 #' }
+#' @importFrom utils browseURL
 connectAndCheck <- function(key, url, ...)
 {
   tryCatch(
@@ -48,6 +49,15 @@ connectAndCheck <- function(key, url, ...)
         success_status_codes=c(200L, 301L, 302L),
         redirect=FALSE
       )
+
+      mapped <- readBin(response$content, character())
+      if(grepl("html", mapped))
+      {
+        x <- tempfile("htmlresponse.html")
+        writeLines(mapped, x)
+        browseURL(paste0("file://",x))
+        stop("Server URL responded with web page. Check URL.")
+      }
 
       # No redirect, this is success
       if(!response$status_code %in% c(301L, 302L)) return(rcon)
@@ -65,6 +75,15 @@ connectAndCheck <- function(key, url, ...)
         success_status_codes=c(200L, 301L, 302L),
         redirect=FALSE
       )
+
+      mapped <- readBin(response$content, character())
+      if(grepl("html", mapped))
+      {
+        x <- tempfile("htmlresponse.html")
+        writeLines(mapped, x)
+        browseURL(paste0("file://",x))
+        stop("Server URL responded with web page. Check URL.")
+      }
 
       if(response$status_code %in% c(301L, 302L))
         stop(paste("Too many redirects from", url))
@@ -125,6 +144,9 @@ connectAndCheck <- function(key, url, ...)
 #' connection objects contain the unlocked key in memory. Tips
 #' are provided in `vignette("redcapAPI-best-practices")`.
 #'
+#' To debug an entire session via what is called / returned from the server,
+#' add the argument `config=list(options=list(verbose=TRUE))` to the call.
+#'
 #' @param connections character vector. A list of strings that define the
 #'          connections with associated API_KEYs to load into environment. Each
 #'          name should correspond to a REDCap project for traceability, but
@@ -148,8 +170,6 @@ connectAndCheck <- function(key, url, ...)
 #'
 #' @examples
 #' \dontrun{
-#' options(keyring_backend=keyring::backend_file) # Put in .Rprofile
-#'
 #' unlockREDCap(c(test_conn    = 'TestRedcapAPI',
 #'                sandbox_conn = 'SandboxAPI'),
 #'              keyring      = '<NAME_OF_KEY_RING_HERE>',
@@ -180,7 +200,7 @@ unlockREDCap    <- function(connections,
   ## Do it
   shelter::unlockKeys(connections,
              keyring,
-             function(key) connectAndCheck(key, url, ...),
+             function(key, ...) connectAndCheck(key, url, ...),
              envir=envir,
              yaml_tag='redcapAPI',
              ...)

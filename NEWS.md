@@ -10,6 +10,14 @@ A future release of version 3.0.0 will introduce several breaking changes!
 * The `exportProjectInfo` and `exportBundle` functions are being discontinued. Their functionality is replaced by caching values on the connection object.
 * The `cleanseMetaData` function is being discontinued.
 
+## 2.11.1
+
+* Better handling of unexpected html responses from REDCap.
+* Improved CSV formatting for API imports. Properly deals with escaped quoting.
+* Allow for overlapping mapping in radio import validation.
+* Restored debug mode for API call/response. Just add `config=list(options=list(verbose=TRUE))` to `unlockREDCap` or any call.
+* Added experimental `exportSAS`.
+
 ## 2.11.0
 
 * `unlockREDCap` internal code is now in package `shelter`.
@@ -287,18 +295,18 @@ Transfer from Benjamin Nutter to VUMC Biostatistics.
 * Codebase has been standardized and given a cleaner format (yeah, that's totally
   subjective)
 
-Changes in Version 1.3.5 (2017-01-20)
+## Changes in Version 1.3.5 (2017-01-20)
   * Bug fixes from @tobadia. (Issue #79)
 
-Changes in Version 1.3.2 (2015-12-09)
+## Changes in Version 1.3.2 (2015-12-09)
   * Bug fix. Changed the call to fieldToVar in exportReports; was incorrectly referencing the meta_data field names. Thanks to Will Campbell for finding this bug.
 
-Changes in Version 1.3.1 (2015-07-05)
+## Changes in Version 1.3.1 (2015-07-05)
   * Changed the default `config` argument in `redcapConnection` from `config=list()`
     to `config=httr::config()`.
   * Added code to allow all errors from `apiCall` to be returned correctly.
 
-Changes in Version 1.3 (2015-03-04)
+## Changes in Version 1.3 (2015-03-04)
   * The Maintainer has been changed to Stephen Lane
   * Bug fix: The REDCap API Error message for `exportEvents`, `exportArms`, and
     `exportMappings` changed between versions 5.x and 6.0.  In 5.x, the error
