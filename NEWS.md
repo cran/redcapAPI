@@ -3,12 +3,20 @@
 A future release of version 3.0.0 will introduce several breaking changes!
 
 * The `exportRecords` function interface will be replaced. Please switch your processes to `exportRecordsTyped`
-* The `exportReports` function interface will be replaced. Please switch your processes to `exportReportsTyped`
 * The `importRecords` function interface will be replaced to utilize `castForImport` to prepare data for import. Validation logs will no longer be printed.
 * The `redcapFactor` class is being discontinued with all its supporting methods (including `redcapFactorFlip`). Please use `recastRecords` instead.
 * The `recodeCheck` function is being discontinued. Please use `recastRecords` instead.
-* The `exportProjectInfo` and `exportBundle` functions are being discontinued. Their functionality is replaced by caching values on the connection object.
-* The `cleanseMetaData` function is being discontinued.
+
+## 2.11.3
+
+* Added injectable log function for use in production environments or debugging.
+
+## 2.11.2
+
+* Fixed bug in `exportDataQuality` when no quality issues exist.
+* Deprecated functions `exportProjectInfo` and `exportBundle` have been removed.
+* Fixed offline test that was having issue on Windows.
+* Fixed bug in exportFilesMultiple.
 
 ## 2.11.1
 

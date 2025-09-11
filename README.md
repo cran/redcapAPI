@@ -25,7 +25,7 @@ Core concerns handled by the library:
 
 ## Comparison to Other REDCap Packages
 
-| Feature                  | redcapAPI | REDCapR | REDCapExporter | tidyREDCap | REDCapTidieR | REDCapDM | redquack         |
+| <sub>Feature</sub>  | <sub>redcapAPI</sub> | <sub>REDCapR</sub> | <sub>REDCapExporter</sub> | <sub>tidyREDCap</sub> | <sub>REDCapTidieR</sub> | <sub>REDCapDM</sub> | <sub>redquack</sub> |
 |--------------------------|:---------:|:-------:|:--------------:|:----------:|:------------:|:--------:|:----------------:|
 | CRAN Downloads           |  ![](https://cranlogs.r-pkg.org/badges/grand-total/redcapAPI) | ![](https://cranlogs.r-pkg.org/badges/grand-total/REDCapR) | ![](https://cranlogs.r-pkg.org/badges/grand-total/REDCapExporter) | ![](https://cranlogs.r-pkg.org/badges/grand-total/tidyREDCap) | ![](https://cranlogs.r-pkg.org/badges/grand-total/REDCapTidieR) | ![](https://cranlogs.r-pkg.org/badges/grand-total/REDCapDM) | ![](https://cranlogs.r-pkg.org/badges/grand-total/redquack) |
 | Export Data To R         |    ✅     |   ✅    |       ✅       |    ✅      |     ✅       |    ✅    |   ✅    |
@@ -179,7 +179,7 @@ Copyright (C) 2012 Jeffrey Horner, Vanderbilt University
 
 Copyright (C) 2013-2022 Benjamin Nutter
 
-Copyright (C) 2023-2024 Benjamin Nutter, Shawn Garbett, Vanderbilt University
+Copyright (C) 2023-2025 Benjamin Nutter, Shawn Garbett, Vanderbilt University
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
