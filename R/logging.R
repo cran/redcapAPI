@@ -155,7 +155,7 @@ createSplunkFUN <- function(
     if(!allowDebug && .currentLogLevel() <= 1) stop("DEBUG or TRACE logging is not allowed by default when using SPLUNK due to PHI/PII concerns")
     # https://docs.splunk.com/Documentation/Splunk/latest/Data/FormateventsforHTTPEventCollector
     packet <- list(
-      time       = Sys.time(),
+      time       = as.numeric(Sys.time()),
       host       = unname(Sys.info()['nodename']),
       source     = project,
       sourcetype = 'redcapAPI',
@@ -166,23 +166,33 @@ createSplunkFUN <- function(
   }
 }
 
+.ignorable <- c('logError','logWarning','logMessage','logEvent','makeApiCall', 'ignore')
 .callStackEnvir <- function()
 {
-  vapply(seq_len(sys.nframe()),
-         function(i) environmentName(environment(sys.function(i))), character(1))
+  funs <- vapply(
+    seq_len(sys.nframe()),
+    function(i)
+    {
+      x <- deparse(sys.call(i)[[1]])
+      if(length(x) > 1) 'ignore' else x
+    },
+    character(1))
+
+  ix   <- which(!funs %in% .ignorable)
+  vapply(ix, function(i) environmentName(environment(sys.function(i))), character(1))
 }
 
 .callFromPackage <- function(pkg)
 {
   ix <- which(.callStackEnvir() == pkg)[1]
-  if(is.na(ix)) NA else sys.call(ix)
+  if(is.na(ix)) NA else deparse(sys.call(ix)[[1]])
 }
 
 #' @rdname logEvent
 #' @export
 logWarning <- function(...)
 {
-  logEvent("WARN", message=paste(...))
+  logEvent("WARN", call=.callFromPackage('redcapAPI'), message=paste(...))
   warning(...)
 }
 
@@ -190,7 +200,7 @@ logWarning <- function(...)
 #' @export
 logStop <- function(...)
 {
-  logEvent("ERROR", message=paste(...))
+  logEvent("ERROR", call=.callFromPackage('redcapAPI'), message=paste(...))
   stop(...)
 }
 
@@ -198,7 +208,7 @@ logStop <- function(...)
 #' @export
 logMessage <- function(...)
 {
-  logEvent("INFO", message=paste(...))
+  logEvent("INFO", call=.callFromPackage('redcapAPI'), message=paste(...))
   message(...)
 }
 

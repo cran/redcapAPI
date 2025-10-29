@@ -1,7 +1,7 @@
 Package: redcapAPI
 Type: Package
 Title: Interface to 'REDCap'
-Version: 2.11.3
+Version: 2.11.4
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
            role = c("ctb", "aut")),
@@ -47,7 +47,7 @@ BugReports: https://github.com/vubiostat/redcapAPI/issues
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-09-10 16:19:17 UTC; garbetsp
+Packaged: 2025-10-28 18:37:37 UTC; garbetsp
 Author: Benjamin Nutter [ctb, aut],
   Shawn Garbett [cre, ctb] (ORCID:
     <https://orcid.org/0000-0003-4079-5621>),
@@ -69,4 +69,4 @@ Author: Benjamin Nutter [ctb, aut],
   Michael Chirico [ctb],
   William Sharp [ctb]
 Repository: CRAN
-Date/Publication: 2025-09-11 05:10:08 UTC
+Date/Publication: 2025-10-29 06:10:02 UTC
