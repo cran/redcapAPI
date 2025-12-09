@@ -7,6 +7,16 @@ A future release of version 3.0.0 will introduce several breaking changes!
 * The `redcapFactor` class is being discontinued with all its supporting methods (including `redcapFactorFlip`). Please use `recastRecords` instead.
 * The `recodeCheck` function is being discontinued. Please use `recastRecords` instead.
 
+## 2.11.5
+
+* `prepUserImportData_validateAllFormsPresent` and `prepUserImportData_extractFormName` functions are removed.
+* Enhanced logging of exporting records to include `record_id` and other non-PHI info.
+* Updated user role permissions to use new numbering scheme based on REDCap version.
+* `unlockREDCap` adds trailing slash to url if not present.
+* `importUsers` improved error message when invalid columns are provided.
+* Added `data_access_group_label` to allowed user attributes.
+* Added `data_quality_resolution` to allowed user attributes. It may be unnecessary.
+
 ## 2.11.4
 
 * Updated to allow for `project_pi_email` as an allowed field of project info.

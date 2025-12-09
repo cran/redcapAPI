@@ -82,12 +82,31 @@ test_that(
                 data = data.frame(username = EXPENDABLE_USER,
                                   data_export = 1,
                                   forms = c("record_id:0"),
-                                  forms_export = "record_id:0"),
+	# leaving an instrument off implicitly sets permission to 0
+                                  forms_export = ""),
                 consolidate = FALSE)
 
     Users <- exportUsers(rcon)
     Users <- Users[Users$username %in% EXPENDABLE_USER, ]
     expect_true(grepl("record_id:0",Users$forms))
+    expect_true(grepl("record_id:0",Users$forms_export))
+
+    # consolidated format when consolidate is FALSE
+    expect_warning(importUsers(rcon,
+                data = data.frame(username = EXPENDABLE_USER,
+                                  record_id_form_access = 1,
+                                  forms = 'record_id:0',
+                                  forms_export = ''),
+		        consolidate = FALSE))
+    Users <- exportUsers(rcon)
+    Users <- Users[Users$username %in% EXPENDABLE_USER, ]
+    expect_true(grepl("record_id:0",Users$forms))
+
+    # NEED TO ADD TWO TESTS
+    # Update data_access_group to "No Assignment"
+    # functionality not supported as of version 2.11.5
+    # Update data_access_group to a legitimate DAG
+    # functionality not supported as of version 2.11.5
   }
 )
 
