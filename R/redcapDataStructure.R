@@ -365,7 +365,7 @@ REDCAP_USER_TABLE_ACCESS_VARIABLES <-
   c("design",
     "alerts",
     "user_rights",
-    "data_access_group",
+    "data_access_groups",
     "reports",
     "stats_and_charts",
     "manage_survey_participants",
@@ -401,6 +401,7 @@ redcapUserRoleStructure <- function(version)
   data.frame(unique_role_name = character(0),
              role_label = character(0),
              design = character(0),
+             alerts = character(0),
              user_rights = character(0),
              data_access_groups = character(0),
              # data_export = character(0),
@@ -415,8 +416,10 @@ redcapUserRoleStructure <- function(version)
              file_repository = character(0),
              data_quality_create = character(0),
              data_quality_execute = character(0),
+             data_quality_resolution = character(0),
              api_export = character(0),
              api_import = character(0),
+             api_modules = if(is.null(version) || utils::compareVersion(version, "14.0.3") < 0) NULL else character(0),
              mobile_app = character(0),
              mobile_app_download_data = character(0),
              record_create = character(0),
@@ -461,7 +464,10 @@ REDCAP_USER_ROLE_TABLE_ACCESS_VARIABLES <-
     "record_delete",
     "lock_records_customization",
     "lock_records",
-    "lock_records_all_forms")
+    "lock_records_all_forms",
+    "random_setup",
+    "random_dashboard",
+    "random_perform")
 
 # User-Role Assignment Structure
 
@@ -473,3 +479,26 @@ redcapUserRoleAssignmentStructure <- function(version)
              data_access_group = if(is.null(version) || utils::compareVersion(version, "15.8.2") < 0) NULL else character(0),
              stringsAsFactors = FALSE)
 }
+
+
+# This is used for File Repository methods. Some calls result in a
+# result of an empty string or an error. At times we prefer to return
+# the empty frame to maintain consistency in outputs with recursive calls
+FILE_REPOSITORY_EMPTY_FRAME <- function(version)
+  data.frame(folder_id = numeric(0),
+             doc_id = numeric(0),
+             name = character(0),
+             role = if(is.null(version) || utils::compareVersion(version, "16.0.8") < 0) NULL else character(0),
+             dag = if(is.null(version) || utils::compareVersion(version, "16.0.8") < 0) NULL else character(0),
+             parent_folder = numeric(0),
+             stringsAsFactors = FALSE)
+
+# This is used for cases when an import/export/delete to the file repository
+# results in no changes and an empty frame is needed for the return
+
+FILE_IMPORT_EXPORT_EMPTY_FRAME <- function(version)
+  data.frame(directory = character(0),
+             filename = character(0),
+             role = if(is.null(version) || utils::compareVersion(version, "16.0.8") < 0) NULL else character(0),
+             dag = if(is.null(version) || utils::compareVersion(version, "16.0.8") < 0) NULL else character(0),
+             stringsAsFactors = FALSE)

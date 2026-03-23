@@ -1,7 +1,7 @@
 Package: redcapAPI
 Type: Package
 Title: Interface to 'REDCap'
-Version: 2.11.5
+Version: 2.12.0
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
            role = c("ctb", "aut")),
@@ -24,7 +24,8 @@ Authors@R: c(
     person("Philip", "Chase", role="ctb"),
     person("Paddy", "Tobias", role = "ctb"),
     person("Michael", "Chirico", role = "ctb"),
-    person("William", "Sharp", role="ctb"))
+    person("William", "Sharp", role="ctb"),
+    person("Alexander", "Strübing", role="ctb"))
 Maintainer: Shawn Garbett <shawn.garbett@vumc.org>
 Description: Access data stored in 'REDCap' databases using the Application
     Programming Interface (API).  'REDCap' (Research Electronic Data CAPture;
@@ -41,13 +42,15 @@ Depends: R (>= 3.5.0)
 Imports: checkmate, chron, curl, jsonlite, labelVector, lubridate,
         mime, shelter (>= 0.2.1)
 LazyLoad: yes
-Suggests: testthat (>= 3.0.0), Hmisc, mockery
+Suggests: testthat (>= 3.0.0), Hmisc, mockery, R.rsp
 URL: https://github.com/vubiostat/redcapAPI
 BugReports: https://github.com/vubiostat/redcapAPI/issues
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
+VignetteBuilder: R.rsp
+Config/build/clean-inst-doc: false
 NeedsCompilation: no
-Packaged: 2025-12-09 00:12:57 UTC; garbetsp
+Packaged: 2026-03-23 13:20:35 UTC; garbetsp
 Author: Benjamin Nutter [ctb, aut],
   Shawn Garbett [cre, ctb] (ORCID:
     <https://orcid.org/0000-0003-4079-5621>),
@@ -67,6 +70,7 @@ Author: Benjamin Nutter [ctb, aut],
   Philip Chase [ctb],
   Paddy Tobias [ctb],
   Michael Chirico [ctb],
-  William Sharp [ctb]
+  William Sharp [ctb],
+  Alexander Strübing [ctb]
 Repository: CRAN
-Date/Publication: 2025-12-09 10:00:02 UTC
+Date/Publication: 2026-03-23 13:50:10 UTC
