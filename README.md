@@ -8,7 +8,7 @@
 redcapAPI
 =========
 
-`redcapAPI` is an [R](https://www.r-project.org) package to pull data from a [REDCap](https://www.project-redcap.org/) project. Its design goes far beyond a 'thin' client which just exposes the raw REDCap API into R. One principal goal is to get data into memory using base R in a format that is analysis ready with a minimum of function calls. There are over 7,000 institutions and 3 million users of REDCap worldwide collecting data. Analysis in R for monitoring and reporting that data is a common concern for these projects.
+`redcapAPI` is an [R](https://www.r-project.org) package to pull data from a [REDCap](https://www.project-redcap.org/) project. Its design goes far beyond a 'thin' client which just exposes the raw REDCap API into R. One principal goal is to get data into memory using base R in a format that is analysis ready with a minimum of function calls. There are over 8,000 institutions and 4 million users of REDCap worldwide collecting data. Analysis in R for monitoring and reporting that data is a common concern for these projects.
 
 Core concerns handled by the library:
 
@@ -32,15 +32,16 @@ Core concerns handled by the library:
 | Import Data From R       |    ✅     |   ✅    |       ❌       |    ❌      |     ❌       |    ❌    |   ❌    |
 | Sparse Block Splitting   |    ✅     |   ✅    |       ❌       |    ✅      |     ✅       |    ✅    |   ❌    |
 | Field Labeling           |    ✅     |   ❌    |       ❌       |    ✅      |     ❌       |    ✅    |   ❌    |
+| Choose All Var. Functions|    ❌     |   ❌    |       ❌       |    ✅      |     ❌       |    ❌    |   ❌    |
 | Attribute Processing     |    ✅     |   ❌    |       ❌       |    ❌      |     ❌       |    ❌    |   ❌    |
 | Logical Expression Query |  partial  |   ❌    |       ❌       |    ❌      |     ❌       |    ✅    |   ❌    |
-| Tidy/Tibble Support      |    ❌     |   ❌    |       ❌       |    ❌      |     ✅       |    ❌    |   ✅    |
+| Tidy/Tibble Support      |    ❌     |   ❌    |       ❌       |    ✅      |     ✅       |    ❌    |   ✅    |
 | Data Summary             |    ❌     |   ❌    |       ❌       |    ❌      |     ✅       |    ❌    |   ❌    |
 | Type Conversion Callbacks|    ✅     |   ❌    |       ❌       |    ❌      |     ❌       |    ❌    |   ❌    |
 | API Failure Auto-Retry   |    ✅     |   ❌    |       ❌       |    ❌      |     ❌       |    ❌    |   ✅    |
 | Secure API Key Storage   |    ✅     |   ❌    |       ✅       |    ❌      |     ❌       |    ❌    |   ❌    |
 | Validation Reporting     |    ✅     |   ❌    |       ❌       |    ❌      |     ❌       |    ❌    |   ❌    |
-| Extensive Test Suite     |    ✅     |   ✅    |       ❌       |    ❌      |     ✅       |    ❌    |   ✅    |
+| Extensive Test Suite     |    ✅     |   ✅    |       ❌       |    ✅      |     ✅       |    ❌    |   ✅    |
 | Logfile Processing       |    ✅     |   ❌    |       ❌       |    ❌      |     ❌       |    ❌    |   ✅    |
 | Offline Calculated Fields|    ❌     |   ❌    |       ❌       |    ❌      |     ❌       |    ✅    |   ❌    |
 
